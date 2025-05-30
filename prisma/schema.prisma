@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model KPI {
+  id              Int           @id @default(autoincrement())
+  name            String // Tên KPI, ví dụ: "Doanh thu tháng 6"
+  month           Int // Tháng áp dụng KPI
+  year            Int // Năm áp dụng KPI
+  name_month_year String        @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  assignments     KPIEmployee[] // Danh sách nhân viên và tiêu chí tương ứng
+}
+
+model Employee {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  assignments KPIEmployee[]
+}
+
+model KPIEmployee {
+  id    Int @id @default(autoincrement())
+  kpi   KPI @relation(fields: [kpiId], references: [id])
+  kpiId Int
+
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId Int
+
+  criterion   String // Tiêu chí cụ thể, ví dụ: "Doanh thu Toyota Touch"
+  targetValue Float // Mục tiêu doanh thu
+  actualValue Float // Doanh thu thực đạt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
