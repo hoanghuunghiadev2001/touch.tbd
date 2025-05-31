@@ -1,24 +1,13 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import {
-  Button,
-  message,
-  Space,
-  Upload,
-  UploadProps,
-  Table,
-  Input,
-  DatePicker,
-} from "antd";
-import { UploadOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
+import { Table, Input, Button, Space, DatePicker } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import dayjs from "dayjs";
 import Link from "next/link";
-import ModalImportValue from "./component/modalImportValue";
 
 export interface result {
   success: boolean;
@@ -59,41 +48,12 @@ interface DataType {
   actualRevenue: string;
 }
 
-export default function UploadTargetForm() {
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [openModalValue, setOpenModalValue] = useState(false);
-  const handleUpload: UploadProps["beforeUpload"] = (file) => {
-    setFile(file);
-    return false; // Ngăn auto upload của Antd
-  };
-
-  const handleSubmit = async () => {
-    if (!file) {
-      message.warning("Vui lòng chọn file Excel!");
-      return;
-    }
-    const formData = new FormData();
-    formData.append("file", file);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/targets/import", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Lỗi import");
-    } catch (err: any) {
-      message.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function TargetTable() {
   const [data, setData] = useState<Daum[]>([]);
+  const [loading, setLoading] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
-  // const [monthFilter, setMonthFilter] = useState<number | undefined>();
-  // const [yearFilter, setYearFilter] = useState<number | undefined>();
+  const [monthFilter, setMonthFilter] = useState<number | undefined>();
+  const [yearFilter, setYearFilter] = useState<number | undefined>();
 
   const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
     null
@@ -199,53 +159,31 @@ export default function UploadTargetForm() {
     },
   ];
 
+  // Picker for year and month
+  // Antd DatePicker can pick month and year, but here we separate for clarity
   return (
-    <div className="p-5">
-      <ModalImportValue
-        onClose={() => setOpenModalValue(false)}
-        open={openModalValue}
-      />
-      <div className="flex justify-between items-center my-4">
-        <Space className="">
-          <Input
-            placeholder="Tìm theo tên nhân viên"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            allowClear
-            style={{ width: 200 }}
-          />
-          <DatePicker
-            picker="month"
-            placeholder="Chọn tháng năm"
-            format="MM/YYYY"
-            value={monthYearFilter}
-            onChange={(date: React.SetStateAction<dayjs.Dayjs | null>) =>
-              setMonthYearFilter(date)
-            }
-            allowClear
-            style={{ width: 150 }}
-          />
-          <Button onClick={fetchData}>Lọc</Button>
-        </Space>
-        <div className="flex gap-3">
-          <Upload beforeUpload={handleUpload} maxCount={1} accept=".xlsx, .xls">
-            <Button icon={<UploadOutlined />}>Thêm chỉ tiêu tháng</Button>
-          </Upload>
-          <Button type="primary" loading={loading} onClick={handleSubmit}>
-            Cập nhật
-          </Button>
-          <Button
-            type="primary"
-            loading={loading}
-            onClick={() => setOpenModalValue(true)}
-          >
-            Cập nhật cho nhân viên
-          </Button>
-          <Button type="dashed" loading={loading}>
-            <Link href={`/dashboard/report`}>Xem báo cáo</Link>
-          </Button>
-        </div>
-      </div>
+    <div style={{ padding: 20 }}>
+      <Space style={{ marginBottom: 16 }}>
+        <Input
+          placeholder="Tìm theo tên nhân viên"
+          value={nameFilter}
+          onChange={(e) => setNameFilter(e.target.value)}
+          allowClear
+          style={{ width: 200 }}
+        />
+        <DatePicker
+          picker="month"
+          placeholder="Chọn tháng năm"
+          format="MM/YYYY"
+          value={monthYearFilter}
+          onChange={(date: React.SetStateAction<dayjs.Dayjs | null>) =>
+            setMonthYearFilter(date)
+          }
+          allowClear
+          style={{ width: 150 }}
+        />
+        <Button onClick={fetchData}>Lọc</Button>
+      </Space>
 
       <Table<DataType> size="small" columns={columns} dataSource={tableData} />
     </div>

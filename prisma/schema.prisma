@@ -7,37 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model KPI {
-  id              Int           @id @default(autoincrement())
-  name            String // Tên KPI, ví dụ: "Doanh thu tháng 6"
-  month           Int // Tháng áp dụng KPI
-  year            Int // Năm áp dụng KPI
-  name_month_year String        @unique
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  assignments     KPIEmployee[] // Danh sách nhân viên và tiêu chí tương ứng
-}
-
+// 🧩 Model Employee - Dữ liệu nhân viên
 model Employee {
-  id          Int           @id @default(autoincrement())
-  name        String        @unique
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  assignments KPIEmployee[]
-}
+  id   String @id @default(uuid()) // ID nhân viên (UUID)
+  name String @unique // Họ và tên nhân viên (CVDV) - KHÔNG ĐƯỢC TRÙNG
 
-model KPIEmployee {
-  id    Int @id @default(autoincrement())
-  kpi   KPI @relation(fields: [kpiId], references: [id])
-  kpiId Int
-
-  employee   Employee @relation(fields: [employeeId], references: [id])
-  employeeId Int
-
-  criterion   String // Tiêu chí cụ thể, ví dụ: "Doanh thu Toyota Touch"
-  targetValue Float // Mục tiêu doanh thu
-  actualValue Float // Doanh thu thực đạt
+  // Quan hệ: 1 nhân viên có nhiều chỉ tiêu và nhiều kết quả thực tế
+  targets Target[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// 🧩 Model Target - Chỉ tiêu nhân viên theo tháng + năm
+model Target {
+  id         String   @id @default(uuid()) // ID chỉ tiêu (UUID)
+  employeeId String // Liên kết nhân viên
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  month Int // Tháng (1-12)
+  year  Int // Năm (vd: 2024)
+
+  tripTarget  Int // Chỉ tiêu lượt xe
+  actualTrips Int @default(0) // Số lượt xe thực tế 
+
+  revenueTarget String // Chỉ tiêu doanh thu
+  actualRevenue String @default("0") // Doanh thu thực tế
+
+  createdAt DateTime @default(now()) // Thời gian tạo
+  updatedAt DateTime @updatedAt // Thời gian cập nhật
+
+  @@unique([employeeId, month, year]) // 1 nhân viên chỉ có 1 chỉ tiêu / tháng / năm
 }

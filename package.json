@@ -10,10 +10,15 @@
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
+    "antd": "^5.25.3",
+    "apexcharts": "^4.7.0",
+    "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
     "fs": "^0.0.1-security",
     "next": "15.3.3",
     "papaparse": "^5.5.3",
     "react": "^19.0.0",
+    "react-apexcharts": "^1.7.0",
     "react-dom": "^19.0.0",
     "xlsx": "^0.18.5"
   },
