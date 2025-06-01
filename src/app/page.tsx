@@ -20,31 +20,54 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import ModalImportValue from "./component/modalImportValue";
 
-export interface result {
+export interface Result {
   success: boolean;
-  data: Daum[];
+  data: Employee[];
 }
 
-export interface Daum {
+export interface Employee {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
-  targets: TargetItem[];
+  monthlyKPIs: MonthlyKPI[];
 }
 
-export interface TargetItem {
-  id: string;
-  employeeId: string;
-  month: number;
-  year: number;
-  tripTarget: number;
-  actualTrips: number;
-  revenueTarget: string;
-  actualRevenue: string;
-  createdAt: string;
-  updatedAt: string;
+// export interface MonthlyKPI {
+//   id: string;
+//   employeeId: string;
+//   month: number;
+//   year: number;
+//   tripTarget: number;
+//   totalTrips: number;
+//   revenueTarget: string;
+//   totalRevenue: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
+
+export interface MonthlyKPI {
+  id: string
+  employeeId: string
+  year: number
+  month: number
+  tripTarget: number
+  revenueTarget: string
+  amount: number
+  createdAt: string
+  updatedAt: string
+  dailyKPIs: DailyKpi[]
+  totalTrips: number
+  totalRevenue: number
 }
+
+export interface DailyKpi {
+  date: string
+  amount: string
+  ticketCode: string
+}
+
+
 
 interface DataType {
   id: string;
@@ -54,18 +77,42 @@ interface DataType {
   month: number;
   year: number;
   tripTarget: number;
-  actualTrips: number;
+  totalTrips: number;
   revenueTarget: string;
-  actualRevenue: string;
+  totalRevenue: string;
 }
 
 export default function UploadTargetForm() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [openModalValue, setOpenModalValue] = useState(false);
+
+  const [data, setData] = useState<Employee[]>([]);
+  const [nameFilter, setNameFilter] = useState("");
+  const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
+    null
+  );
+
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     setFile(file);
     return false; // Ngăn auto upload của Antd
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (monthYearFilter) {
+        params.append("monthYear", monthYearFilter.format("YYYY-MM"));
+      }
+      if (nameFilter) params.append("name", nameFilter);
+
+      const res = await axios.get<Result>(`/api/targets?${params.toString()}`);
+      setData(res.data.data);
+    } catch (error) {
+      console.error("Failed to fetch data", error);
+    }
+    setLoading(false);
   };
 
   const handleSubmit = async () => {
@@ -82,66 +129,48 @@ export default function UploadTargetForm() {
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Lỗi import");
+      if (!res.ok) {
+        throw new Error(data.error || "Lỗi import");
+      }
+      message.success(data.message || "Import KPI thành công");
+      setFile(null); // reset file sau khi import thành công
+      fetchData(); // load lại dữ liệu sau import
     } catch (err: any) {
-      message.error(err.message);
+      message.error(err.message || "Lỗi import dữ liệu");
     } finally {
       setLoading(false);
     }
-  };
-
-  const [data, setData] = useState<Daum[]>([]);
-  const [nameFilter, setNameFilter] = useState("");
-  // const [monthFilter, setMonthFilter] = useState<number | undefined>();
-  // const [yearFilter, setYearFilter] = useState<number | undefined>();
-
-  const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
-    null
-  );
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (monthYearFilter) {
-        // Gửi param dạng "YYYY-MM" ví dụ "2025-05"
-        params.append("monthYear", monthYearFilter.format("YYYY-MM"));
-      }
-      if (nameFilter) params.append("name", nameFilter);
-
-      const res = await axios.get<result>(`/api/targets?${params.toString()}`);
-      setData(res.data.data);
-      console.log(res.data.data);
-    } catch (error) {
-      console.error("Failed to fetch data", error);
-    }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  // Tạo dữ liệu cho table
   const tableData: DataType[] = data.flatMap((employee) =>
-    employee.targets.map((target, index) => ({
+    employee.monthlyKPIs.map((kpi, index) => ({
       id: employee.id,
-      key: `${employee.id}-${target.id}`,
+      key: `${employee.id}-${kpi.id}`,
       stt: index + 1,
       name: employee.name,
-      month: target.month,
-      year: target.year,
-      tripTarget: target.tripTarget,
-      actualTrips: target.actualTrips,
-      revenueTarget: Number(target.revenueTarget).toLocaleString("vi-VN"),
-      actualRevenue: Number(target.actualRevenue).toLocaleString("vi-VN"),
+      month: kpi.month,
+      year: kpi.year,
+      tripTarget: kpi.tripTarget,
+      totalTrips: kpi.totalTrips,
+      revenueTarget: Number(kpi.revenueTarget).toLocaleString("vi-VN"),
+      totalRevenue: Number(kpi.totalRevenue).toLocaleString("vi-VN"),
     }))
   );
+
+  console.log(tableData);
+
+
 
   const columns: ColumnsType<DataType> = [
     {
       title: "STT",
       key: "stt",
-      render: (text, record, index) => index + 1, // index bắt đầu từ 0, nên +1 cho STT
+      render: (text, record, index) => index + 1,
       width: 60,
     },
     {
@@ -169,8 +198,8 @@ export default function UploadTargetForm() {
     },
     {
       title: "Thực tế lượt xe",
-      dataIndex: "actualTrips",
-      key: "actualTrips",
+      dataIndex: "totalTrips",
+      key: "totalTrips",
       align: "right",
     },
     {
@@ -178,26 +207,38 @@ export default function UploadTargetForm() {
       dataIndex: "revenueTarget",
       key: "revenueTarget",
       align: "right",
+      render: (_, record) => <p>{aroundNumber(aroundNumber(record.revenueTarget))}</p>,
+
     },
     {
       title: "Thực tế doanh thu (VNĐ)",
-      dataIndex: "actualRevenue",
-      key: "actualRevenue",
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
       align: "right",
     },
     {
-      title: "Chi tiêts",
+      title: "Chi tiết",
       render: (_, record) => (
         <Space>
-          <Link
-            href={`/dashboard/${record.id}/${encodeURIComponent(record.name)}`}
-          >
+          <Link href={`/dashboard/${record.id}/${encodeURIComponent(record.name)}`}>
             Chi tiết
           </Link>
         </Space>
       ),
     },
   ];
+
+  function aroundNumber(input: string): string {
+
+    // 1. Chuyển dấu phẩy (,) thành dấu chấm thập phân
+    const normalized = input.replace(/\./g, "").replace(",", ".");
+
+    // 2. Ép thành số và làm tròn lên
+    const number = Math.ceil(parseFloat(normalized));
+
+    // 3. Format lại với dấu chấm phân cách hàng nghìn (locale: vi-VN)
+    return number.toLocaleString("vi-VN");
+  }
 
   return (
     <div className="p-5">
@@ -206,7 +247,7 @@ export default function UploadTargetForm() {
         open={openModalValue}
       />
       <div className="flex justify-between items-center my-4">
-        <Space className="">
+        <Space>
           <Input
             placeholder="Tìm theo tên nhân viên"
             value={nameFilter}
@@ -219,16 +260,17 @@ export default function UploadTargetForm() {
             placeholder="Chọn tháng năm"
             format="MM/YYYY"
             value={monthYearFilter}
-            onChange={(date: React.SetStateAction<dayjs.Dayjs | null>) =>
-              setMonthYearFilter(date)
-            }
+            onChange={(date) => setMonthYearFilter(date)}
             allowClear
             style={{ width: 150 }}
           />
-          <Button onClick={fetchData}>Lọc</Button>
+          <Button onClick={fetchData} loading={loading}>
+            Lọc
+          </Button>
         </Space>
-        <div className="flex gap-3">
-          <Upload beforeUpload={handleUpload} maxCount={1} accept=".xlsx, .xls">
+
+        <Space>
+          <Upload beforeUpload={handleUpload} maxCount={1} accept=".xlsx,.xls">
             <Button icon={<UploadOutlined />}>Thêm chỉ tiêu tháng</Button>
           </Upload>
           <Button type="primary" loading={loading} onClick={handleSubmit}>
@@ -244,7 +286,7 @@ export default function UploadTargetForm() {
           <Button type="dashed" loading={loading}>
             <Link href={`/dashboard/report`}>Xem báo cáo</Link>
           </Button>
-        </div>
+        </Space>
       </div>
 
       <Table<DataType> size="small" columns={columns} dataSource={tableData} />

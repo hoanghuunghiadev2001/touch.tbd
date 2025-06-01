@@ -7,35 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 🧩 Model Employee - Dữ liệu nhân viên
 model Employee {
-  id   String @id @default(uuid()) // ID nhân viên (UUID)
-  name String @unique // Họ và tên nhân viên (CVDV) - KHÔNG ĐƯỢC TRÙNG
+  id   String @id @default(uuid())
+  name String @unique
+  // Nếu muốn thêm mã nhân viên thì thêm trường employeeCode String @unique?
 
-  // Quan hệ: 1 nhân viên có nhiều chỉ tiêu và nhiều kết quả thực tế
-  targets Target[]
+  monthlyKPIs MonthlyKPI[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model MonthlyKPI {
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  year          Int
+  month         Int
+  tripTarget    Int? // Tổng số chuyến đi theo tháng
+  revenueTarget Decimal? @db.Decimal(15, 2) // Tổng doanh thu theo tháng
+  amount        Int? // Tổng số lượng theo tháng (nếu cần)
+
+  dailyKPIs DailyKPI[] // Quan hệ 1-n với daily
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([employeeId, year, month]) // Đảm bảo 1 bản ghi chỉ tiêu/tháng/nhân viên
 }
 
-// 🧩 Model Target - Chỉ tiêu nhân viên theo tháng + năm
-model Target {
-  id         String   @id @default(uuid()) // ID chỉ tiêu (UUID)
-  employeeId String // Liên kết nhân viên
-  employee   Employee @relation(fields: [employeeId], references: [id])
+model DailyKPI {
+  id           String     @id @default(uuid())
+  monthlyKPIId String
+  monthlyKPI   MonthlyKPI @relation(fields: [monthlyKPIId], references: [id])
 
-  month Int // Tháng (1-12)
-  year  Int // Năm (vd: 2024)
+  date       DateTime // Ngày dữ liệu này ghi nhận
+  jobCode    String?
+  ticketCode String?
+  amount     Decimal? @db.Decimal(15, 2)
 
-  tripTarget  Int // Chỉ tiêu lượt xe
-  actualTrips Int @default(0) // Số lượt xe thực tế 
-
-  revenueTarget String // Chỉ tiêu doanh thu
-  actualRevenue String @default("0") // Doanh thu thực tế
-
-  createdAt DateTime @default(now()) // Thời gian tạo
-  updatedAt DateTime @updatedAt // Thời gian cập nhật
-
-  @@unique([employeeId, month, year]) // 1 nhân viên chỉ có 1 chỉ tiêu / tháng / năm
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -1,139 +1,132 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// 📂 /app/api/target/import-excel/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import * as xlsx from "xlsx";
+import fsPromises from "fs/promises";
 import prisma from "@/lib/prisma";
-import * as XLSX from "xlsx";
 
-export const POST = async (req: NextRequest) => {
+export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const monthYearInput = formData.get("monthYear")?.toString(); // Dạng MM-YYYY
+    const file = formData.get("file");
 
-    let month: number;
-    let year: number;
-
-    if (monthYearInput) {
-      const [m, y] = monthYearInput.split("-");
-      month = parseInt(m);
-      year = parseInt(y);
-      if (!month || !year)
-        throw new Error("Sai định dạng tháng-năm. Ví dụ: 06-2025");
-    } else {
-      const now = new Date();
-      month = now.getMonth() + 1;
-      year = now.getFullYear();
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json(
+        { error: "Không tìm thấy file" },
+        { status: 400 }
+      );
     }
 
-    // Đọc file Excel
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data: any[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Gom dữ liệu theo mã xe
-    const groupedData: Record<
-      string,
-      { employeeName: string; totalRevenue: number }
-    > = {};
+    // Tạo thư mục uploads nếu chưa có
+    const uploadsDir = path.join(process.cwd(), "uploads");
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir);
+    }
 
-    data.forEach((row) => {
-      const employeeName = row["cvdv"]?.toString()?.trim();
-      const plate = row["sophieu"]?.toString()?.trim();
-      const amountStr =
-        row["thanhtien"]?.toString()?.replace(/[^0-9]/g, "") || "0";
-      const amount = parseInt(amountStr) || 0;
+    const filename = `${Date.now()}-${file.name}`;
+    const filepath = path.join(uploadsDir, filename);
+    await fsPromises.writeFile(filepath, buffer);
 
-      if (!employeeName || !plate) return;
+    function excelDateToJSDate(excelDate: number): Date {
+      // Excel bắt đầu tính từ 1899-12-30
+      const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+      const jsDate = new Date(excelEpoch.getTime() + excelDate * 86400000); // 86400000 ms = 1 ngày
+      return jsDate;
+    }
 
-      const key = `${plate}_${employeeName}`;
+    function formatDateToDDMMYYYY(date: Date): string {
+      const day = date.getUTCDate().toString().padStart(2, "0");
+      const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+      const year = date.getUTCFullYear();
+      return `${day}/${month}/${year}`;
+    }
 
-      if (!groupedData[key]) {
-        groupedData[key] = { employeeName, totalRevenue: 0 };
-      }
-      groupedData[key].totalRevenue += amount;
-    });
+    try {
+      const workbook = xlsx.read(buffer, { type: "buffer" });
+      // Lấy sheet thứ 2 nếu có, không thì lấy sheet đầu tiên
+      const sheetName = workbook.SheetNames[1] || workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = xlsx.utils.sheet_to_json(sheet, { defval: "" });
 
-    // Gom theo nhân viên
-    const finalData: Record<
-      string,
-      { actualTrips: number; actualRevenue: number }
-    > = {};
+      for (const row of rows) {
+        const data = row as Record<string, any>;
 
-    Object.values(groupedData).forEach((item) => {
-      const { employeeName, totalRevenue } = item;
-      if (!finalData[employeeName]) {
-        finalData[employeeName] = { actualTrips: 0, actualRevenue: 0 };
-      }
-      finalData[employeeName].actualTrips += 1;
-      finalData[employeeName].actualRevenue += totalRevenue;
-    });
+        const name = (data["cvdv"] || "").toString().trim();
+        const rawDate = data["ngaygs"]?.toString().trim();
 
-    // Lấy danh sách nhân viên
-    const employees = await prisma.employee.findMany();
-    console.log(employees);
-    console.log(Object.toString());
+        if (!name || !rawDate) {
+          console.warn("❌ Dữ liệu không hợp lệ, bỏ qua:", data);
+          continue;
+        }
 
-    const operations = Object.entries(finalData).map(async ([name, data]) => {
-      const employee = employees.find(
-        (e) => e.name.toLowerCase() === name.toLowerCase()
-      );
-      console.log("aaa" + employees);
+        console.log(rawDate);
 
-      if (!employee) return null;
+        const jsDate = excelDateToJSDate(rawDate);
+        const formattedDate = formatDateToDDMMYYYY(jsDate);
 
-      console.log(employee);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [day, month, year] = formattedDate.split("/").map(Number);
 
-      const existingTarget = await prisma.target.findUnique({
-        where: {
-          employeeId_month_year: {
-            employeeId: employee.id,
-            month,
-            year,
-          },
-        },
-      });
+        const jobCode = (data["mahang"] || "").toString().trim();
+        const ticketCode = (data["sophieu"] || "").toString().trim();
+        const amount =
+          (data["thanhtien"] || "0").toString().replace(/\D/g, "") || 0;
 
-      if (existingTarget) {
-        // Chỉ update actualTrips và actualRevenue
-        return prisma.target.update({
+        // Tìm hoặc tạo nhân viên
+        let employee = await prisma.employee.findUnique({ where: { name } });
+        if (!employee) {
+          employee = await prisma.employee.create({ data: { name } });
+        }
+
+        // Tìm hoặc tạo MonthlyKPI
+        let monthlyKPI = await prisma.monthlyKPI.findFirst({
           where: {
-            id: existingTarget.id,
-          },
-          data: {
-            actualTrips: data.actualTrips,
-            actualRevenue: data.actualRevenue.toString(),
+            employeeId: employee.id,
+            year,
+            month,
           },
         });
-      } else {
-        // Nếu chưa có, thì tạo mới với actualTrips, actualRevenue, các field khác mặc định
-        return prisma.target.create({
+
+        if (!monthlyKPI) {
+          monthlyKPI = await prisma.monthlyKPI.create({
+            data: {
+              employeeId: employee.id,
+              year,
+              month,
+            },
+          });
+        }
+        console.log(formattedDate);
+
+        // Ghi vào bảng DailyKPI
+        await prisma.dailyKPI.create({
           data: {
-            employeeId: employee.id,
-            month,
-            year,
-            tripTarget: 0, // Nếu cần mặc định thì để
-            actualTrips: data.actualTrips,
-            revenueTarget: "0", // Mặc định
-            actualRevenue: data.actualRevenue.toString(),
+            monthlyKPIId: monthlyKPI.id,
+            date: jsDate,
+            jobCode,
+            ticketCode,
+            amount,
           },
         });
       }
-    });
 
-    await Promise.all(operations);
-
-    return NextResponse.json({
-      message: "Import thành công",
-      month,
-      year,
-    });
+      return NextResponse.json({ message: "Import DailyKPI thành công" });
+    } finally {
+      try {
+        await fsPromises.unlink(filepath);
+        console.log("🧹 Đã xoá file tạm:", filepath);
+      } catch (err) {
+        console.warn("⚠️ Không thể xoá file tạm:", err);
+      }
+    }
   } catch (error: any) {
-    console.error(error);
+    console.error("❌ Lỗi import:", error);
     return NextResponse.json(
-      { error: error.message || "Lỗi xử lý file Excel" },
+      { error: error?.message || "Có lỗi xảy ra khi import file" },
       { status: 500 }
     );
   }
-};
+}
