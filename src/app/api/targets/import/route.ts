@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import * as xlsx from "xlsx";
 import prisma from "@/lib/prisma";
 
+import crypto from "crypto";
+
+// Tính hash của file
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -16,6 +20,27 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex"); // Tính hash
+
+    // Kiểm tra hash trong DB
+    const existingFile = await prisma.importedFile.findUnique({
+      where: { fileHash },
+    });
+
+    if (existingFile) {
+      return NextResponse.json(
+        { error: "File đã được import trước đó, không cần import lại" },
+        { status: 400 }
+      );
+    }
+
+    // Lưu hash vào DB
+    await prisma.importedFile.create({
+      data: {
+        fileName: file.name,
+        fileHash,
+      },
+    });
 
     // Đọc file Excel, lấy sheet thứ 2 (index 1), nếu không có thì lấy sheet đầu tiên (index 0)
     const workbook = xlsx.read(buffer, { type: "buffer" });
@@ -56,8 +81,6 @@ export async function POST(req: Request) {
         console.warn("Bỏ qua dòng dữ liệu không hợp lệ:", data);
         continue;
       }
-
-      console.log(revenueTarget);
 
       // Tìm hoặc tạo nhân viên
       let employee = await prisma.employee.findUnique({ where: { name } });

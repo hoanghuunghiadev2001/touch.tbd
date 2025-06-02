@@ -5,6 +5,7 @@ import path from "path";
 import * as xlsx from "xlsx";
 import fsPromises from "fs/promises";
 import prisma from "@/lib/prisma";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +20,28 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex"); // Tính hash
+
+    // Kiểm tra hash trong DB
+    const existingFile = await prisma.importedFile.findUnique({
+      where: { fileHash },
+    });
+
+    if (existingFile) {
+      return NextResponse.json(
+        { error: "File đã được import trước đó, không cần import lại" },
+        { status: 400 }
+      );
+    }
+
+    // Lưu hash vào DB
+    await prisma.importedFile.create({
+      data: {
+        fileName: file.name,
+        fileHash,
+      },
+    });
 
     // Tạo thư mục uploads nếu chưa có
     const uploadsDir = path.join(process.cwd(), "uploads");
@@ -62,8 +85,6 @@ export async function POST(req: Request) {
           continue;
         }
 
-        console.log(rawDate);
-
         const jsDate = excelDateToJSDate(rawDate);
         const formattedDate = formatDateToDDMMYYYY(jsDate);
 
@@ -99,7 +120,6 @@ export async function POST(req: Request) {
             },
           });
         }
-        console.log(formattedDate);
 
         // Ghi vào bảng DailyKPI
         await prisma.dailyKPI.create({

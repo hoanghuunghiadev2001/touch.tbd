@@ -7,6 +7,7 @@ import axios from "axios";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import ModalLoading from "@/app/component/modalLoading";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -48,13 +49,15 @@ export default function ReportPage() {
           const target = data.find((t: Target) => t.month === m);
           fullData.push({
             month: m,
-            actualTrips: target ? target.actualTrips : 0,
-            actualRevenue: target ? target.actualRevenue : "0",
+            actualTrips: target ? target.totalTrips : 0,
+            actualRevenue: target ? target.totalRevenue : "0",
             revenueTarget: target ? target.revenueTarget : "0",
             tripTarget: target ? target.tripTarget : 0,
           });
         }
+
         setTargets(fullData);
+        console.log(fullData);
       })
       .catch(() => {
         message.error("Lấy dữ liệu thống kê thất bại");
@@ -210,10 +213,11 @@ export default function ReportPage() {
 
   return (
     <div>
+      <ModalLoading isOpen={loading} />
       <div className="flex w-full">
         <div className="p-4 h-[100vh] shadow-2xl shadow-[#4a4a6a] rounded-br-xl rounded-tr-xl">
           <div className="w-[200px]">
-            <Button type="primary">
+            <Button type="primary" onClick={() => setLoading(true)}>
               <Link href={"/"}>Trang chủ</Link>
             </Button>
             <h2 className="my-3 text-lg  font-bold text-center uppercase underline-offset-2 text-[#18184d]">
@@ -224,6 +228,7 @@ export default function ReportPage() {
               <DatePicker
                 className="w-full"
                 picker="year"
+                allowClear={false}
                 onChange={(date) =>
                   setSelectedYear(date?.year() || dayjs().year())
                 }

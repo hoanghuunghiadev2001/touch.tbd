@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// 📂 /app/api/target/personal-stats-year/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
@@ -19,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     const year = yearParam ? parseInt(yearParam) : new Date().getFullYear();
 
-    // Tìm nhân viên theo ID hoặc tên
+    // Tìm nhân viên
     let employee;
     if (employeeId) {
       employee = await prisma.employee.findUnique({
@@ -38,13 +37,34 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Lấy tất cả chỉ tiêu trong năm của nhân viên
-    const targets = await prisma.target.findMany({
-      where: {
-        employeeId: employee.id,
-        year,
-      },
+    // Lấy MonthlyKPI + DailyKPI
+    const rawTargets = await prisma.monthlyKPI.findMany({
+      where: { employeeId: employee.id, year },
       orderBy: { month: "asc" },
+      include: {
+        dailyKPIs: {
+          orderBy: { date: "asc" },
+        },
+      },
+    });
+
+    // Xử lý tổng hợp: tính totalTrips và totalRevenue
+    const targets = rawTargets.map((kpi) => {
+      const uniqueTicketCodes = new Set<string>();
+      let totalRevenue = 0;
+
+      for (const daily of kpi.dailyKPIs) {
+        if (daily.ticketCode) {
+          uniqueTicketCodes.add(daily.ticketCode);
+        }
+        totalRevenue += Number(daily.amount || 0);
+      }
+
+      return {
+        ...kpi,
+        totalTrips: uniqueTicketCodes.size,
+        totalRevenue,
+      };
     });
 
     return NextResponse.json({

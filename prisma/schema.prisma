@@ -49,3 +49,10 @@ model DailyKPI {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model ImportedFile {
+  id         Int      @id @default(autoincrement())
+  fileName   String
+  fileHash   String   @unique // Thêm @unique vào đây!
+  importedAt DateTime @default(now())
+}

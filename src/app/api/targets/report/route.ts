@@ -1,67 +1,86 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { startOfDay, endOfDay } from "date-fns";
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
 
-    const nameParam = searchParams.get("name")?.toLowerCase();
+    const employeeId = searchParams.get("employeeId");
+    const departmentCode = searchParams.get("departmentCode");
+    const dateParam = searchParams.get("date"); // yyyy-mm-dd
 
-    // Lấy tháng, năm từ param hoặc mặc định tháng năm hiện tại
-    const now = new Date();
-    const monthParam = Number(searchParams.get("month") ?? now.getMonth() + 1);
-    const yearParam = Number(searchParams.get("year") ?? now.getFullYear());
-
-    if (nameParam) {
-      // Nếu có tên nhân viên, lấy nhân viên đó cùng tất cả targets của họ (bất kể tháng năm)
-      const employee = await prisma.employee.findFirst({
-        where: {
-          name: {
-            equals: nameParam,
-          },
-        },
-        include: {
-          targets: {
-            orderBy: [{ year: "asc" }, { month: "asc" }],
-          },
-        },
-      });
-
-      if (!employee) {
-        return NextResponse.json(
-          { success: false, message: "Không tìm thấy nhân viên" },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({ success: true, data: [employee] });
-    } else {
-      // Nếu không truyền tên, lấy tất cả nhân viên có target trong tháng-năm đó
-      const employees = await prisma.employee.findMany({
-        where: {
-          targets: {
-            some: {
-              month: monthParam,
-              year: yearParam,
-            },
-          },
-        },
-        include: {
-          targets: {
-            where: {
-              month: monthParam,
-              year: yearParam,
-            },
-          },
-        },
-      });
-
-      return NextResponse.json({ success: true, data: employees });
+    if (!employeeId && !departmentCode) {
+      return NextResponse.json(
+        { error: "Cần truyền employeeId hoặc departmentCode" },
+        { status: 400 }
+      );
     }
-  } catch (error) {
-    console.error("Failed to fetch targets:", error);
+
+    const date = dateParam ? new Date(dateParam) : new Date();
+    const startDate = startOfDay(date);
+    const endDate = endOfDay(date);
+
+    // Tìm nhân viên phù hợp
+    const employees = await prisma.employee.findMany({
+      where: {
+        ...(employeeId ? { id: employeeId } : {}),
+        ...(departmentCode ? { departmentCode } : {}),
+      },
+      include: {
+        monthlyKPIs: {
+          include: {
+            dailyKPIs: {
+              where: {
+                date: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!employees.length) {
+      return NextResponse.json(
+        { error: "Không tìm thấy nhân viên phù hợp" },
+        { status: 404 }
+      );
+    }
+
+    // Tính tổng DailyKPI
+    let totalTripCount = 0;
+    let totalAmount = 0;
+
+    const uniqueTickets = new Set<string>();
+
+    employees.forEach((emp) => {
+      emp.monthlyKPIs.forEach((kpi) => {
+        kpi.dailyKPIs.forEach((daily) => {
+          if (daily.ticketCode) uniqueTickets.add(daily.ticketCode);
+          if (daily.amount) totalAmount += Number(daily.amount);
+        });
+      });
+    });
+
+    totalTripCount = uniqueTickets.size;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        filter: employeeId ? { employeeId } : { departmentCode },
+        date: startDate.toISOString().split("T")[0],
+        totalTripCount,
+        totalAmount,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error:", error);
     return NextResponse.json(
-      { success: false, message: "Lỗi server" },
+      { success: false, message: error.message || "Lỗi server" },
       { status: 500 }
     );
   }

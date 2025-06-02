@@ -9,8 +9,9 @@ import {
   Upload,
   UploadProps,
   Table,
-  Input,
   DatePicker,
+  Form,
+  Select,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
@@ -19,18 +20,32 @@ import axios from "axios";
 import dayjs from "dayjs";
 import Link from "next/link";
 import ModalImportValue from "./component/modalImportValue";
+import ModalLoading from "./component/modalLoading";
 
 export interface Result {
   success: boolean;
   data: Employee[];
+  summary: Summary;
 }
 
 export interface Employee {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  monthlyKPIs: MonthlyKPI[];
+  employeeId: string;
+  employeeName: string;
+  month: number;
+  year: number;
+  targetTrips: number;
+  targetRevenue: number;
+  actualTrips: number;
+  actualRevenue: number;
+}
+
+export interface Summary {
+  month: number;
+  year: number;
+  totalTargetTrips: number;
+  totalTargetRevenue: number;
+  totalActualTrips: number;
+  totalActualRevenue: number;
 }
 
 // export interface MonthlyKPI {
@@ -47,27 +62,25 @@ export interface Employee {
 // }
 
 export interface MonthlyKPI {
-  id: string
-  employeeId: string
-  year: number
-  month: number
-  tripTarget: number
-  revenueTarget: string
-  amount: number
-  createdAt: string
-  updatedAt: string
-  dailyKPIs: DailyKpi[]
-  totalTrips: number
-  totalRevenue: number
+  id: string;
+  employeeId: string;
+  year: number;
+  month: number;
+  tripTarget: number;
+  revenueTarget: string;
+  amount: number;
+  createdAt: string;
+  updatedAt: string;
+  dailyKPIs: DailyKpi[];
+  totalTrips: number;
+  totalRevenue: number;
 }
 
 export interface DailyKpi {
-  date: string
-  amount: string
-  ticketCode: string
+  date: string;
+  amount: string;
+  ticketCode: string;
 }
-
-
 
 interface DataType {
   id: string;
@@ -87,11 +100,33 @@ export default function UploadTargetForm() {
   const [loading, setLoading] = useState(false);
   const [openModalValue, setOpenModalValue] = useState(false);
 
-  const [data, setData] = useState<Employee[]>([]);
-  const [nameFilter, setNameFilter] = useState("");
+  const [data, setData] = useState<Result>();
+  const [nameFilter, setNameFilter] = useState<string>();
   const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
-    null
+    dayjs().startOf("month")
   );
+  const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
+    []
+  );
+
+  useEffect(() => {
+    async function fetchMetadata() {
+      try {
+        const res = await fetch("/api/infoEmployee");
+        const data = await res.json();
+
+        if (data.success) {
+          setEmployees(data.employees);
+        } else {
+          console.error("Lỗi fetch API:", data.message);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+    }
+
+    fetchMetadata();
+  }, []);
 
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     setFile(file);
@@ -105,10 +140,10 @@ export default function UploadTargetForm() {
       if (monthYearFilter) {
         params.append("monthYear", monthYearFilter.format("YYYY-MM"));
       }
-      if (nameFilter) params.append("name", nameFilter);
+      if (nameFilter) params.append("employeeId", nameFilter);
 
       const res = await axios.get<Result>(`/api/targets?${params.toString()}`);
-      setData(res.data.data);
+      setData(res.data);
     } catch (error) {
       console.error("Failed to fetch data", error);
     }
@@ -147,24 +182,22 @@ export default function UploadTargetForm() {
   }, []);
 
   // Tạo dữ liệu cho table
-  const tableData: DataType[] = data.flatMap((employee) =>
-    employee.monthlyKPIs.map((kpi, index) => ({
-      id: employee.id,
-      key: `${employee.id}-${kpi.id}`,
-      stt: index + 1,
-      name: employee.name,
-      month: kpi.month,
-      year: kpi.year,
-      tripTarget: kpi.tripTarget,
-      totalTrips: kpi.totalTrips,
-      revenueTarget: Number(kpi.revenueTarget).toLocaleString("vi-VN"),
-      totalRevenue: Number(kpi.totalRevenue).toLocaleString("vi-VN"),
-    }))
-  );
-
-  console.log(tableData);
-
-
+  const tableData: DataType[] =
+    data?.data?.flatMap((employee, index) => {
+      if (!employee) return [];
+      return {
+        id: employee.employeeId,
+        key: `${index + "-target"}`,
+        stt: index + 1,
+        name: employee.employeeName,
+        month: employee.month,
+        year: employee.year,
+        tripTarget: employee.targetTrips,
+        totalTrips: employee.actualTrips,
+        revenueTarget: Number(employee.targetRevenue).toLocaleString("vi-VN"),
+        totalRevenue: Number(employee.actualRevenue).toLocaleString("vi-VN"),
+      };
+    }) || [];
 
   const columns: ColumnsType<DataType> = [
     {
@@ -207,8 +240,9 @@ export default function UploadTargetForm() {
       dataIndex: "revenueTarget",
       key: "revenueTarget",
       align: "right",
-      render: (_, record) => <p>{aroundNumber(aroundNumber(record.revenueTarget))}</p>,
-
+      render: (_, record) => (
+        <p>{aroundNumber(aroundNumber(record.revenueTarget))}</p>
+      ),
     },
     {
       title: "Thực tế doanh thu (VNĐ)",
@@ -219,8 +253,10 @@ export default function UploadTargetForm() {
     {
       title: "Chi tiết",
       render: (_, record) => (
-        <Space>
-          <Link href={`/dashboard/${record.id}/${encodeURIComponent(record.name)}`}>
+        <Space onClick={() => setLoading(true)}>
+          <Link
+            href={`/dashboard/${record.id}/${encodeURIComponent(record.name)}`}
+          >
             Chi tiết
           </Link>
         </Space>
@@ -229,7 +265,6 @@ export default function UploadTargetForm() {
   ];
 
   function aroundNumber(input: string): string {
-
     // 1. Chuyển dấu phẩy (,) thành dấu chấm thập phân
     const normalized = input.replace(/\./g, "").replace(",", ".");
 
@@ -240,21 +275,55 @@ export default function UploadTargetForm() {
     return number.toLocaleString("vi-VN");
   }
 
+  useEffect(() => {
+    if (!openModalValue) {
+      setLoading(false);
+    }
+  }, [openModalValue]);
+
+  useEffect(() => {
+    console.log(loading);
+  }, [loading]);
+
   return (
     <div className="p-5">
+      <ModalLoading isOpen={loading} />
       <ModalImportValue
-        onClose={() => setOpenModalValue(false)}
+        loading={loading}
+        onClose={() => {
+          setOpenModalValue(false);
+          setLoading(false);
+        }}
         open={openModalValue}
+        setLoading={setLoading}
       />
       <div className="flex justify-between items-center my-4">
         <Space>
-          <Input
-            placeholder="Tìm theo tên nhân viên"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            allowClear
-            style={{ width: 200 }}
-          />
+          <Form.Item
+            style={{ minWidth: "250px" }}
+            label="Tên nhân viên"
+            layout="horizontal"
+            className="!m-0"
+          >
+            <Select
+              showSearch
+              placeholder="Tên nhân viên"
+              value={nameFilter}
+              onChange={(e) => {
+                setNameFilter(e);
+              }}
+              allowClear
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              options={employees.map((code) => ({
+                value: code.id,
+                label: code.name,
+              }))}
+            />
+          </Form.Item>
           <DatePicker
             picker="month"
             placeholder="Chọn tháng năm"
@@ -264,7 +333,7 @@ export default function UploadTargetForm() {
             allowClear
             style={{ width: 150 }}
           />
-          <Button onClick={fetchData} loading={loading}>
+          <Button type="primary" onClick={fetchData} loading={loading}>
             Lọc
           </Button>
         </Space>
@@ -283,13 +352,21 @@ export default function UploadTargetForm() {
           >
             Cập nhật cho nhân viên
           </Button>
-          <Button type="dashed" loading={loading}>
+          <Button
+            type="dashed"
+            loading={loading}
+            onClick={() => setLoading(true)}
+          >
             <Link href={`/dashboard/report`}>Xem báo cáo</Link>
           </Button>
         </Space>
       </div>
 
-      <Table<DataType> size="small" columns={columns} dataSource={tableData} />
+      <Table<DataType>
+        size="small"
+        columns={columns}
+        dataSource={tableData || []}
+      />
     </div>
   );
 }
