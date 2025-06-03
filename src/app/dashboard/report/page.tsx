@@ -23,6 +23,7 @@ import ReactApexChart from "react-apexcharts";
 import { Color } from "antd/es/color-picker";
 import Link from "next/link";
 import ModalLoading from "@/app/component/modalLoading";
+import { useRouter } from "next/navigation";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -124,6 +125,8 @@ export default function EmployeeDashboard() {
   // State lọc theo mã ngành
   const [industryCode, setIndustryCode] = useState<string>();
   // Dữ liệu nhân viên từ API
+
+  const router = useRouter();
 
   const [stateChartTrips, setStateChartTrips] = React.useState({
     series: [76],
@@ -274,7 +277,6 @@ export default function EmployeeDashboard() {
       const json = await res.json();
 
       if (json.success) {
-        console.log(json);
         setLoading(false);
         if (json.data) {
           setLoading(false);
@@ -359,7 +361,7 @@ export default function EmployeeDashboard() {
 
   const chartLuotXeSeries = [
     {
-      name: "Thực tế",
+      name: "Lượt xe",
       data: dataEmployee.map((e) => e.actualLuotXe),
       type: chartType === "line" ? "line" : "bar",
     },
@@ -417,7 +419,7 @@ export default function EmployeeDashboard() {
 
   const chartDoanhThuSeries = [
     {
-      name: "Thực tế",
+      name: "Doanh thu",
       data: dataEmployee.map((e) => e.actualDoanhThu),
       type: chartType === "line" ? "line" : "bar",
     },
@@ -457,10 +459,15 @@ export default function EmployeeDashboard() {
     <div style={{ padding: 24 }} className="flex w-full gap-4">
       <ModalLoading isOpen={loading} />
       <div className="w-[250px] shrink-0">
-        <Button type="primary" onClick={() => setLoading(true)}>
-          <Link href={"/"}>Trang chủ</Link>
+        <Button
+          type="primary"
+          onClick={() => {
+            setLoading(true);
+            router.push("/");
+          }}
+        >
+          Trang chủ
         </Button>
-        <Title level={3}>Thống kê</Title>
 
         <div className="flex flex-col">
           <Form.Item label="Ngày">

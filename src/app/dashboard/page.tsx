@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
@@ -5,7 +6,6 @@ import React, { useEffect, useState } from "react";
 import { Table, Input, Button, Space, DatePicker } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import axios from "axios";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import dayjs from "dayjs";
 import Link from "next/link";
 
@@ -52,8 +52,6 @@ export default function TargetTable() {
   const [data, setData] = useState<Daum[]>([]);
   const [loading, setLoading] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
-  const [monthFilter, setMonthFilter] = useState<number | undefined>();
-  const [yearFilter, setYearFilter] = useState<number | undefined>();
 
   const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
     null
@@ -71,7 +69,6 @@ export default function TargetTable() {
 
       const res = await axios.get<result>(`/api/targets?${params.toString()}`);
       setData(res.data.data);
-      console.log(res.data.data);
     } catch (error) {
       console.error("Failed to fetch data", error);
     }

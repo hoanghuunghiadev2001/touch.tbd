@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -21,6 +22,9 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import ModalImportValue from "./component/modalImportValue";
 import ModalLoading from "./component/modalLoading";
+import ModalDetailEmployee from "./component/modalDetailEmployee";
+import { useRouter } from "next/navigation";
+import ModalImportTarget from "./component/modalImportTarget";
 
 export interface Result {
   success: boolean;
@@ -95,19 +99,46 @@ interface DataType {
   totalRevenue: string;
 }
 
+export interface EmployeeDetailKPI {
+  employeeId: string;
+  employeeName: string;
+  month: number;
+  year: number;
+  revenueTarget: string;
+  tripTarget: number;
+  dailyKPIs: DailyKpiDetail[];
+}
+
+export interface DailyKpiDetail {
+  id: string;
+  monthlyKPIId: string;
+  date: string;
+  jobCode: string;
+  ticketCode: string;
+  amount: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function UploadTargetForm() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [openModalValue, setOpenModalValue] = useState(false);
+  const [openModalTarget, setOpenModalTarget] = useState(false);
 
   const [data, setData] = useState<Result>();
   const [nameFilter, setNameFilter] = useState<string>();
   const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
     dayjs().startOf("month")
   );
+  const [modalDetailEmployee, setModalDetaiEmployee] = useState(false);
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
     []
   );
+
+  const [dataEmployeeDetail, setDataEmployeeDetail] =
+    useState<EmployeeDetailKPI>();
 
   useEffect(() => {
     async function fetchMetadata() {
@@ -127,10 +158,72 @@ export default function UploadTargetForm() {
 
     fetchMetadata();
   }, []);
-
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     setFile(file);
     return false; // Ngăn auto upload của Antd
+  };
+  const EmployeeDetail = async (id: string) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (monthYearFilter) {
+        params.append("monthYear", monthYearFilter.format("YYYY-MM"));
+      }
+
+      const res = await axios.get<any>(`/api/kpis/${id}?${params.toString()}`);
+      setDataEmployeeDetail(res.data);
+      setModalDetaiEmployee(true);
+    } catch (error) {
+      console.error("Failed to fetch data", error);
+    }
+    setLoading(false);
+  };
+
+  const updateTarget = async (
+    editAmountTarget: number,
+    editTripTarget: number,
+    setEditTarget: any
+  ) => {
+    if (dataEmployeeDetail) {
+      const monthYear =
+        dataEmployeeDetail?.year +
+        "-" +
+        (dataEmployeeDetail?.month < 10
+          ? "0" + dataEmployeeDetail?.month
+          : dataEmployeeDetail?.month);
+      try {
+        setLoading(true);
+        // Call API PUT to update daily KPI
+
+        const res = await fetch(`/api/kpis/${dataEmployeeDetail?.employeeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            monthYear: monthYear,
+            updateType: "monthly",
+            data: {
+              revenueTarget: editAmountTarget,
+              tripTarget: editTripTarget,
+            },
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          EmployeeDetail(dataEmployeeDetail?.employeeId);
+          fetchData();
+          setEditTarget(false);
+          message.success("Updated successfully");
+          setLoading(false);
+        } else {
+          setLoading(false);
+          message.error(data.error || "Update failed");
+        }
+      } catch (error) {
+        setLoading(false);
+
+        message.error("Update error");
+      }
+    }
   };
 
   const fetchData = async () => {
@@ -150,7 +243,7 @@ export default function UploadTargetForm() {
     setLoading(false);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (file?: File) => {
     if (!file) {
       message.warning("Vui lòng chọn file Excel!");
       return;
@@ -177,9 +270,87 @@ export default function UploadTargetForm() {
     }
   };
 
+  const editDailyKPI = async (
+    id: string,
+    date: string,
+    jobCode: string,
+    ticketCode: string,
+    amount: number,
+    setEditingKey: any
+  ) => {
+    if (dataEmployeeDetail)
+      try {
+        // Validate date
+        if (!date) {
+          message.error("Date is required");
+          return;
+        }
+        const monthYear =
+          dataEmployeeDetail?.year +
+          "-" +
+          (dataEmployeeDetail?.month < 10
+            ? "0" + dataEmployeeDetail?.month
+            : dataEmployeeDetail?.month);
+        // Call API PUT to update daily KPI
+        const res = await fetch(`/api/kpis/${dataEmployeeDetail?.employeeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            monthYear,
+            updateType: "daily",
+            data: {
+              id,
+              date: date,
+              jobCode: jobCode,
+              ticketCode: ticketCode,
+              amount: amount,
+            },
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          message.success("Updated successfully");
+          EmployeeDetail(dataEmployeeDetail?.employeeId);
+          fetchData();
+          setEditingKey(null);
+          return res.ok;
+        } else {
+          message.error(data.error || "Update failed");
+        }
+      } catch (error) {
+        message.error("Update error");
+      }
+  };
+
+  // Delete daily KPI
+  const deleteDailyKPI = async (id: string) => {
+    if (dataEmployeeDetail?.employeeId)
+      try {
+        const res = await fetch(`/api/kpis/${dataEmployeeDetail?.employeeId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dailyKpiId: id }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          message.success("Deleted successfully");
+          EmployeeDetail(dataEmployeeDetail?.employeeId);
+          fetchData();
+        } else {
+          message.error(data.error || "Delete failed");
+        }
+      } catch (error) {
+        message.error("Delete error");
+      }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  function parseVNDStringToNumber(vnd: string): number {
+    return Number(vnd.replace(/\./g, ""));
+  }
 
   // Tạo dữ liệu cho table
   const tableData: DataType[] =
@@ -234,31 +405,51 @@ export default function UploadTargetForm() {
       dataIndex: "totalTrips",
       key: "totalTrips",
       align: "right",
+      render: (_, record) => (
+        <p
+          className={`${
+            record.totalTrips > record.tripTarget
+              ? "text-green-700"
+              : "text-red-700"
+          }`}
+        >
+          {record.totalTrips}
+        </p>
+      ),
     },
     {
       title: "Chỉ tiêu doanh thu (VNĐ)",
       dataIndex: "revenueTarget",
       key: "revenueTarget",
       align: "right",
-      render: (_, record) => (
-        <p>{aroundNumber(aroundNumber(record.revenueTarget))}</p>
-      ),
+      render: (_, record) => <p>{aroundNumber(record.revenueTarget)}</p>,
     },
     {
       title: "Thực tế doanh thu (VNĐ)",
       dataIndex: "totalRevenue",
       key: "totalRevenue",
       align: "right",
+      render: (_, record) => (
+        <p
+          className={`${
+            parseVNDStringToNumber(record.totalRevenue) >=
+            parseVNDStringToNumber(aroundNumber(record.revenueTarget))
+              ? "text-green-700"
+              : "text-red-700"
+          }`}
+        >
+          {record.totalRevenue}
+        </p>
+      ),
     },
     {
       title: "Chi tiết",
       render: (_, record) => (
-        <Space onClick={() => setLoading(true)}>
-          <Link
-            href={`/dashboard/${record.id}/${encodeURIComponent(record.name)}`}
-          >
-            Chi tiết
-          </Link>
+        <Space
+          className="text-blue-600 cursor-pointer"
+          onClick={() => EmployeeDetail(record.id)}
+        >
+          Chi tiết
         </Space>
       ),
     },
@@ -281,13 +472,17 @@ export default function UploadTargetForm() {
     }
   }, [openModalValue]);
 
-  useEffect(() => {
-    console.log(loading);
-  }, [loading]);
-
   return (
     <div className="p-5">
       <ModalLoading isOpen={loading} />
+      <ModalDetailEmployee
+        editDailyKPI={editDailyKPI}
+        onclose={() => setModalDetaiEmployee(false)}
+        open={modalDetailEmployee}
+        dataEmployeeDetail={dataEmployeeDetail}
+        deleteDailyKPI={deleteDailyKPI}
+        updateTarget={updateTarget}
+      />
       <ModalImportValue
         loading={loading}
         onClose={() => {
@@ -296,6 +491,16 @@ export default function UploadTargetForm() {
         }}
         open={openModalValue}
         setLoading={setLoading}
+      />
+      <ModalImportTarget
+        loading={loading}
+        onClose={() => {
+          setOpenModalTarget(false);
+          setLoading(false);
+        }}
+        open={openModalTarget}
+        setLoading={setLoading}
+        handleSubmit={handleSubmit}
       />
       <div className="flex justify-between items-center my-4">
         <Space>
@@ -330,34 +535,38 @@ export default function UploadTargetForm() {
             format="MM/YYYY"
             value={monthYearFilter}
             onChange={(date) => setMonthYearFilter(date)}
-            allowClear
+            allowClear={false}
             style={{ width: 150 }}
           />
           <Button type="primary" onClick={fetchData} loading={loading}>
-            Lọc
+            Tìm kiếm
           </Button>
         </Space>
 
         <Space>
-          <Upload beforeUpload={handleUpload} maxCount={1} accept=".xlsx,.xls">
-            <Button icon={<UploadOutlined />}>Thêm chỉ tiêu tháng</Button>
-          </Upload>
-          <Button type="primary" loading={loading} onClick={handleSubmit}>
-            Cập nhật
+          <Button
+            type="primary"
+            loading={loading}
+            onClick={() => setOpenModalTarget(true)}
+          >
+            Thêm chỉ tiêu
           </Button>
           <Button
             type="primary"
             loading={loading}
             onClick={() => setOpenModalValue(true)}
           >
-            Cập nhật cho nhân viên
+            Cập nhật dữ liệu
           </Button>
           <Button
             type="dashed"
             loading={loading}
-            onClick={() => setLoading(true)}
+            onClick={() => {
+              setLoading(true);
+              router.push(`/dashboard/report`);
+            }}
           >
-            <Link href={`/dashboard/report`}>Xem báo cáo</Link>
+            Xem báo cáo
           </Button>
         </Space>
       </div>

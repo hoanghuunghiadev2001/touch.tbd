@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ModalLoading from "@/app/component/modalLoading";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -23,8 +23,7 @@ interface Target {
 
 export default function ReportPage() {
   const params = useParams() as any;
-  console.log(params);
-
+  const router = useRouter();
   const employeeName = params.name;
   const employeeId = params.id;
   const [selectedYear, setSelectedYear] = useState(dayjs().year());
@@ -57,7 +56,6 @@ export default function ReportPage() {
         }
 
         setTargets(fullData);
-        console.log(fullData);
       })
       .catch(() => {
         message.error("Lấy dữ liệu thống kê thất bại");
@@ -217,8 +215,14 @@ export default function ReportPage() {
       <div className="flex w-full">
         <div className="p-4 h-[100vh] shadow-2xl shadow-[#4a4a6a] rounded-br-xl rounded-tr-xl">
           <div className="w-[200px]">
-            <Button type="primary" onClick={() => setLoading(true)}>
-              <Link href={"/"}>Trang chủ</Link>
+            <Button
+              type="primary"
+              onClick={() => {
+                setLoading(true);
+                router.push("/");
+              }}
+            >
+              Trang chủ
             </Button>
             <h2 className="my-3 text-lg  font-bold text-center uppercase underline-offset-2 text-[#18184d]">
               {decodeURIComponent(employeeName)}

@@ -61,12 +61,17 @@ const ModalImportValue = ({
       onCancel={onClose}
       footer={null} // Tắt footer
     >
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <Space direction="horizontal" size="large" style={{ width: "100%" }}>
         <Upload beforeUpload={handleUpload} maxCount={1} accept=".xlsx, .xls">
           <Button icon={<UploadOutlined />}>Chọn file Excel</Button>
         </Upload>
-        <Button type="primary" loading={loading} onClick={handleSubmit}>
-          Import Chỉ tiêu
+        <Button
+          type="primary"
+          loading={loading}
+          disabled={file ? false : true}
+          onClick={handleSubmit}
+        >
+          Cập nhật dữ liệu
         </Button>
       </Space>
     </Modal>
