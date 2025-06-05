@@ -26,7 +26,6 @@ model MonthlyKPI {
   month         Int
   tripTarget    Int? // Tổng số chuyến đi theo tháng
   revenueTarget Decimal? @db.Decimal(15, 2) // Tổng doanh thu theo tháng
-  amount        Int? // Tổng số lượng theo tháng (nếu cần)
 
   dailyKPIs DailyKPI[] // Quan hệ 1-n với daily
 

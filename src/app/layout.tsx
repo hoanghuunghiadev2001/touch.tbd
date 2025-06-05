@@ -4,6 +4,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConfigProvider } from "antd";
 import vnVN from "antd/locale/vi_VN";
+import "dayjs/locale/vi";
+import dayjs from "dayjs";
+
+dayjs.locale("vi");
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

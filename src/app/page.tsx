@@ -25,6 +25,7 @@ import ModalLoading from "./component/modalLoading";
 import ModalDetailEmployee from "./component/modalDetailEmployee";
 import { useRouter } from "next/navigation";
 import ModalImportTarget from "./component/modalImportTarget";
+import ModalAddKPIMonth from "./component/modalAddKPIMonth";
 
 export interface Result {
   success: boolean;
@@ -126,6 +127,8 @@ export default function UploadTargetForm() {
   const [loading, setLoading] = useState(false);
   const [openModalValue, setOpenModalValue] = useState(false);
   const [openModalTarget, setOpenModalTarget] = useState(false);
+  const [modalAddKPIMonth, setModalAddKPIMonth] = useState(false);
+  const [form] = Form.useForm();
 
   const [data, setData] = useState<Result>();
   const [nameFilter, setNameFilter] = useState<string>();
@@ -432,7 +435,7 @@ export default function UploadTargetForm() {
       render: (_, record) => (
         <p
           className={`${
-            parseVNDStringToNumber(record.totalRevenue) >=
+            parseVNDStringToNumber(aroundNumber(record.totalRevenue)) >=
             parseVNDStringToNumber(aroundNumber(record.revenueTarget))
               ? "text-green-700"
               : "text-red-700"
@@ -475,9 +478,17 @@ export default function UploadTargetForm() {
   return (
     <div className="p-5">
       <ModalLoading isOpen={loading} />
+      <ModalAddKPIMonth
+        setOpenModalTarget={setOpenModalTarget}
+        onclose={() => setModalAddKPIMonth(false)}
+        open={modalAddKPIMonth}
+      />
       <ModalDetailEmployee
         editDailyKPI={editDailyKPI}
-        onclose={() => setModalDetaiEmployee(false)}
+        onclose={() => {
+          setModalDetaiEmployee(false);
+          fetchData();
+        }}
         open={modalDetailEmployee}
         dataEmployeeDetail={dataEmployeeDetail}
         deleteDailyKPI={deleteDailyKPI}
@@ -504,31 +515,34 @@ export default function UploadTargetForm() {
       />
       <div className="flex justify-between items-center my-4">
         <Space>
-          <Form.Item
-            style={{ minWidth: "250px" }}
-            label="Tên nhân viên"
-            layout="horizontal"
-            className="!m-0"
-          >
-            <Select
-              showSearch
-              placeholder="Tên nhân viên"
-              value={nameFilter}
-              onChange={(e) => {
-                setNameFilter(e);
-              }}
-              allowClear
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={employees.map((code) => ({
-                value: code.id,
-                label: code.name,
-              }))}
-            />
-          </Form.Item>
+          <Form form={form}>
+            <Form.Item
+              style={{ minWidth: "250px" }}
+              label="Tên nhân viên"
+              layout="horizontal"
+              className="!m-0"
+            >
+              <Select
+                showSearch
+                placeholder="Tên nhân viên"
+                value={nameFilter}
+                onChange={(e) => {
+                  setNameFilter(e);
+                }}
+                allowClear
+                filterOption={(input, option) =>
+                  (option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                options={employees.map((code) => ({
+                  value: code.id,
+                  label: code.name,
+                }))}
+              />
+            </Form.Item>
+          </Form>
+
           <DatePicker
             picker="month"
             placeholder="Chọn tháng năm"
@@ -547,7 +561,7 @@ export default function UploadTargetForm() {
           <Button
             type="primary"
             loading={loading}
-            onClick={() => setOpenModalTarget(true)}
+            onClick={() => setModalAddKPIMonth(true)}
           >
             Thêm chỉ tiêu
           </Button>

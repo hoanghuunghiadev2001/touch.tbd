@@ -64,20 +64,11 @@ export async function POST(req: Request) {
           ? revenueRaw
           : parseFloat(revenueRaw?.toString().replace(/,/g, "") || "0");
 
-      const amount = parseInt(
-        data["SOLUONG"]?.toString().replace(/\D/g, "") || "0"
-      );
       const month = parseInt(
         data["THANG"]?.toString().replace(/\D/g, "") || "0"
       );
 
-      if (
-        !name ||
-        !month ||
-        isNaN(tripTarget) ||
-        isNaN(revenueTarget) ||
-        isNaN(amount)
-      ) {
+      if (!name || !month || isNaN(tripTarget) || isNaN(revenueTarget)) {
         console.warn("Bỏ qua dòng dữ liệu không hợp lệ:", data);
         continue;
       }
@@ -100,7 +91,6 @@ export async function POST(req: Request) {
         update: {
           tripTarget,
           revenueTarget,
-          amount,
         },
         create: {
           employeeId: employee.id,
@@ -108,7 +98,6 @@ export async function POST(req: Request) {
           month: month,
           tripTarget,
           revenueTarget,
-          amount,
         },
       });
     }
