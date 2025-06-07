@@ -2,6 +2,7 @@
 // app/api/employees/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isUser } from "@/app/lib/auth";
 
 function getStartAndEndOfCurrentMonth() {
   const now = new Date();
@@ -24,6 +25,9 @@ function getDateRangeArray(from: Date, to: Date) {
 }
 
 export async function GET(req: NextRequest) {
+  if (!isUser(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
   try {
     const { searchParams } = new URL(req.url);
     let fromDate = searchParams.get("fromDate");

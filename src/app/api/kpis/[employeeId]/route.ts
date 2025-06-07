@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { isUser } from "@/app/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -15,12 +16,16 @@ function parseMonthYear(monthYear: string): { month: number; year: number } {
 }
 
 // GET: /api/kpis/:employeeId?monthYear=2025-05
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { employeeId: string } }
-) {
-  const { employeeId } = params;
+export async function GET(req: NextRequest) {
+  if (!isUser(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
   const monthYear = req.nextUrl.searchParams.get("monthYear");
+  const employeeId = req.nextUrl.searchParams.get("employeeId");
+
+  if (!employeeId) {
+    return NextResponse.json({ error: "Missing employeeId" }, { status: 400 });
+  }
 
   if (!monthYear) {
     return NextResponse.json({ error: "Missing monthYear" }, { status: 400 });
@@ -61,11 +66,13 @@ export async function GET(
 }
 
 // PUT: cập nhật monthly hoặc daily
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { employeeId: string } }
-) {
-  const { employeeId } = params;
+export async function PUT(req: NextRequest) {
+  const employeeId = req.nextUrl.searchParams.get("employeeId");
+
+  if (!employeeId) {
+    return NextResponse.json({ error: "Missing employeeId" }, { status: 400 });
+  }
+
   const body = await req.json();
   const { monthYear, updateType, data } = body;
 

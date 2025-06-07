@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isUser } from "@/app/lib/auth";
 
 export async function POST(req: NextRequest) {
+  if (!isUser(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
   try {
     const body = await req.json();
     const { year, month, data } = body;

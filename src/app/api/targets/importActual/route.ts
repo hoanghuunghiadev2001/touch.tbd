@@ -1,13 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import * as xlsx from "xlsx";
 import fsPromises from "fs/promises";
 import prisma from "@/lib/prisma";
 import crypto from "crypto";
+import { isUser } from "@/app/lib/auth";
 
-export async function POST(req: Request) {
+export async function POST(data: NextRequest, req: Request) {
+  if (!isUser(data)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
   try {
     const formData = await req.formData();
     const file = formData.get("file");

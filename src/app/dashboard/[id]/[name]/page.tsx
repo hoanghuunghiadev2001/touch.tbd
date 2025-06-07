@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, DatePicker, Spin, message } from "antd";
+import { Button, DatePicker, message } from "antd";
 import dayjs from "dayjs";
 import axios from "axios";
 import dynamic from "next/dynamic";
@@ -148,12 +148,12 @@ export default function ReportPage() {
     {
       name: "Chỉ tiêu lượt xe",
       type: "line",
-      data: targets.map((t) => t.tripTarget),
+      data: targets.map((t) => Number(t.tripTarget)),
     },
     {
       name: "Lượt xe thực tế",
       type: "line",
-      data: targets.map((t) => t.actualTrips),
+      data: targets.map((t) => Number(t.actualTrips)),
     },
   ];
 
@@ -260,28 +260,24 @@ export default function ReportPage() {
           </div>
         </div>
         <div className="w-full h-[100vh] overflow-hidden">
-          {loading ? (
-            <Spin />
-          ) : (
-            <div className="h-[100%] flex flex-col">
-              <div className="h-[50%]">
-                <ReactApexChart
-                  options={chartOptionsTrips}
-                  series={chartSeriesTrips}
-                  type="line"
-                  height={"100%"}
-                />
-              </div>
-              <div className="h-[50%]">
-                <ReactApexChart
-                  options={chartOptionsRevenue}
-                  series={chartSeriesRevenue}
-                  type="line"
-                  height={"100%"}
-                />
-              </div>
+          <div className="h-[100%] flex flex-col">
+            <div className="h-[50%]">
+              <ReactApexChart
+                options={chartOptionsTrips}
+                series={chartSeriesTrips}
+                type="line"
+                height={"100%"}
+              />
             </div>
-          )}
+            <div className="h-[50%]">
+              <ReactApexChart
+                options={chartOptionsRevenue}
+                series={chartSeriesRevenue}
+                type="line"
+                height={"100%"}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

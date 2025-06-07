@@ -170,6 +170,7 @@ export default function UploadTargetForm() {
     try {
       const params = new URLSearchParams();
       if (monthYearFilter) {
+        params.append("employeeId", id);
         params.append("monthYear", monthYearFilter.format("YYYY-MM"));
       }
 
@@ -476,7 +477,7 @@ export default function UploadTargetForm() {
   }, [openModalValue]);
 
   return (
-    <div className="p-5">
+    <div className="pt-2 pb-5 px-5 ">
       <ModalLoading isOpen={loading} />
       <ModalAddKPIMonth
         setOpenModalTarget={setOpenModalTarget}

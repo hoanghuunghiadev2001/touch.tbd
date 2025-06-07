@@ -17,6 +17,11 @@ model Employee {
   updatedAt   DateTime     @updatedAt
 }
 
+enum Role {
+  ADMIN
+  MANAGER
+}
+
 model MonthlyKPI {
   id         String   @id @default(uuid())
   employeeId String
@@ -54,4 +59,15 @@ model ImportedFile {
   fileName   String
   fileHash   String   @unique // Thêm @unique vào đây!
   importedAt DateTime @default(now())
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  name     String
+  role     Role   @default(MANAGER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

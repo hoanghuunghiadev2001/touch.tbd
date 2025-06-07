@@ -620,7 +620,7 @@ export default function EmployeeDashboard() {
           </>
         )}
       </div>
-      <div className="w-full h-[calc(100vh-50px)]">
+      <div className="w-full h-[calc(100vh-96px)]">
         {loading && <Text>Đang tải dữ liệu...</Text>}
 
         {!loading && (

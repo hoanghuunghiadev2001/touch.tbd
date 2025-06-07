@@ -2,8 +2,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { startOfDay, endOfDay } from "date-fns";
+import { isUser } from "@/app/lib/auth";
 
 export async function GET(req: NextRequest) {
+  if (!isUser(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
   try {
     const { searchParams } = new URL(req.url);
 
