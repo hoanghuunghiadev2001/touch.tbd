@@ -21,8 +21,8 @@ import axios from "axios";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ModalLoading from "../component/modalLoading";
 import ModalAddKPIMonth from "../component/modalAddKPIMonth";
+import ModalLoading from "../component/modalLoading";
 import ModalDetailEmployee from "../component/modalDetailEmployee";
 import ModalImportValue from "../component/modalImportValue";
 import ModalImportTarget from "../component/modalImportTarget";
@@ -128,6 +128,7 @@ export default function UploadTargetForm() {
   const [openModalValue, setOpenModalValue] = useState(false);
   const [openModalTarget, setOpenModalTarget] = useState(false);
   const [modalAddKPIMonth, setModalAddKPIMonth] = useState(false);
+  const [monthTarget, setMontTarget] = useState<string>();
   const [form] = Form.useForm();
 
   const [data, setData] = useState<Result>();
@@ -247,7 +248,7 @@ export default function UploadTargetForm() {
     setLoading(false);
   };
 
-  const handleSubmit = async (file?: File) => {
+  const handleSubmit = async (month: string, file?: File) => {
     if (!file) {
       message.warning("Vui lòng chọn file Excel!");
       return;
@@ -256,7 +257,7 @@ export default function UploadTargetForm() {
     formData.append("file", file);
     setLoading(true);
     try {
-      const res = await fetch("/api/targets/import", {
+      const res = await fetch(`/api/targets/import?month=${month}`, {
         method: "POST",
         body: formData,
       });
@@ -483,6 +484,7 @@ export default function UploadTargetForm() {
         setOpenModalTarget={setOpenModalTarget}
         onclose={() => setModalAddKPIMonth(false)}
         open={modalAddKPIMonth}
+        setMontTarget={setMontTarget}
       />
       <ModalDetailEmployee
         editDailyKPI={editDailyKPI}
@@ -500,11 +502,13 @@ export default function UploadTargetForm() {
         onClose={() => {
           setOpenModalValue(false);
           setLoading(false);
+          fetchData();
         }}
         open={openModalValue}
         setLoading={setLoading}
       />
       <ModalImportTarget
+        month={monthTarget ?? ""}
         loading={loading}
         onClose={() => {
           setOpenModalTarget(false);

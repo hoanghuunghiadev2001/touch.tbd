@@ -220,14 +220,26 @@ export async function GET(req: NextRequest) {
       stat.totalAmount += Number(d.amount ?? 0);
     });
 
-    const employeeData = employees.map((emp) => {
-      const stat = employeeStatsMap.get(emp.id);
-      return {
-        employee: emp,
-        totalAmount: stat ? stat.ticketCodeSet.size : 0,
-        totalRevenue: stat ? stat.totalAmount : 0,
-      };
-    });
+    const employeeData = await Promise.all(
+      employees.map(async (emp) => {
+        const stat = employeeStatsMap.get(emp.id);
+        const monthlyKPI = await prisma.monthlyKPI.findFirst({
+          where: {
+            employeeId: emp.id,
+            year: from.getFullYear(),
+            month: from.getMonth() + 1,
+          },
+        });
+
+        return {
+          employee: emp,
+          totalAmount: stat ? stat.ticketCodeSet.size : 0,
+          totalRevenue: stat ? stat.totalAmount : 0,
+          tripTarget: monthlyKPI?.tripTarget || 0,
+          revenueTarget: monthlyKPI?.revenueTarget || 0,
+        };
+      })
+    );
 
     const allUniqueTicketCodes = new Set(dailyKPIs.map((d) => d.ticketCode));
     const totalAmount = allUniqueTicketCodes.size;

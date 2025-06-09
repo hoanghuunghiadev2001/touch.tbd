@@ -8,8 +8,8 @@ import prisma from "@/lib/prisma";
 import crypto from "crypto";
 import { isUser } from "@/app/lib/auth";
 
-export async function POST(data: NextRequest, req: Request) {
-  if (!isUser(data)) {
+export async function POST(req: NextRequest) {
+  if (!isUser(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
   try {

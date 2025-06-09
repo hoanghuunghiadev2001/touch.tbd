@@ -283,6 +283,8 @@ export default function EmployeeDashboard() {
           try {
             const converted = convertEmployeeData(json);
             setDataEmployee(converted);
+            console.log(converted);
+
             setCategories(converted.map((e: { name: any }) => e.name));
             setLoading(false);
           } catch (error) {
@@ -456,9 +458,9 @@ export default function EmployeeDashboard() {
   }, [dateRange, employeeId, industryCode]);
 
   return (
-    <div style={{ padding: 24 }} className="flex w-full gap-4">
+    <div className="flex w-full gap-4 p-4 h-[calc(100vh-65px)]">
       <ModalLoading isOpen={loading} />
-      <div className="w-[250px] shrink-0">
+      <div className="w-[250px] h-full shrink-0">
         <Button
           type="primary"
           onClick={() => {
@@ -620,7 +622,7 @@ export default function EmployeeDashboard() {
           </>
         )}
       </div>
-      <div className="w-full h-[calc(100vh-96px)]">
+      <div className="w-full h-full">
         {loading && <Text>Đang tải dữ liệu...</Text>}
 
         {!loading && (

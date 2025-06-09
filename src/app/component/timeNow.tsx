@@ -37,5 +37,5 @@ export default function Clock() {
     return () => clearInterval(interval);
   }, []);
 
-  return <div className="italic text-[#626262] font-bold">{time}</div>;
+  return <div className="italic text-gray-500 font-bold">{time}</div>;
 }

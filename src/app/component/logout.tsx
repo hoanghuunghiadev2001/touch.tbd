@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 import { LockOutlined, LogoutOutlined } from "@ant-design/icons";
@@ -75,7 +76,6 @@ const Logout = () => {
 
   async function getUser() {
     if (pathname === "/login") return;
-    console.log(11111111111111);
 
     try {
       const req = await fetch("/api/users/", {
@@ -106,7 +106,7 @@ const Logout = () => {
   if (pathname === "/login") return null;
 
   return (
-    <div className="flex justify-between pt-4 z-50 px-5 gap-3 items-center">
+    <div className="flex justify-between pt-4 z-50 px-5 gap-3 items-center bg-white shadow-header h-16 rounded-b-2xl">
       <div>
         <ModalLoading isOpen={loading} />
         <ModalChangePass

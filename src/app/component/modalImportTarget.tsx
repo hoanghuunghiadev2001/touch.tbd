@@ -11,12 +11,14 @@ interface ModalImportTargetProps {
   onClose: () => void;
   setLoading: (value: boolean) => void;
   loading: boolean;
-  handleSubmit: (file?: File) => void;
+  month: string;
+  handleSubmit: (month: string, file?: File) => void;
 }
 const ModalImportTarget = ({
   onClose,
   open,
   loading,
+  month,
   handleSubmit,
 }: ModalImportTargetProps) => {
   const [file, setFile] = useState<File>();
@@ -42,7 +44,7 @@ const ModalImportTarget = ({
           type="primary"
           loading={loading}
           disabled={file ? false : true}
-          onClick={() => handleSubmit(file)}
+          onClick={() => handleSubmit(month, file)}
         >
           Cập nhật Chỉ tiêu
         </Button>

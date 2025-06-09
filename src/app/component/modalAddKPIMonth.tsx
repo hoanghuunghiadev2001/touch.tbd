@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DatePicker, Form, Modal } from "antd";
@@ -6,6 +7,8 @@ import React, { useEffect, useState } from "react";
 import { Table, InputNumber, message, Button } from "antd";
 import dayjs from "dayjs";
 import { DownloadOutlined, SaveFilled, SaveOutlined } from "@ant-design/icons";
+import { MessageInstance } from "antd/es/message/interface";
+import ModalLoading from "./modalLoading";
 
 interface Employee {
   id: string;
@@ -16,37 +19,69 @@ interface KPIInput {
   employeeId: string;
   tripTarget?: number;
   revenueTarget?: number;
-  amount?: number;
+  totalAmount?: number;
+  totalRevenue?: number;
 }
 
 interface ModalAddKPIMonthProps {
   open: boolean;
   onclose: () => void;
   setOpenModalTarget: (value: boolean) => void;
+  setMontTarget: (month: string) => void;
+  messageApi: MessageInstance;
+  fetchData: () => void;
 }
 const ModalAddKPIMonth = ({
   onclose,
   open,
   setOpenModalTarget,
+  setMontTarget,
+  messageApi,
+  fetchData,
 }: ModalAddKPIMonthProps) => {
   const [formAdd] = Form.useForm();
   const [employees, setEmployees] = useState<Employee[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(dayjs());
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (date: dayjs.Dayjs) => {
+    const fromDate = date.startOf("month").format("YYYY-MM-DD");
+    const endDate = date.endOf("month").format("YYYY-MM-DD");
+    setLoading(true);
     try {
-      const res = await fetch("/api/employees");
+      const res = await fetch(
+        `/api/employees?fromDate=${fromDate}&toDate=${endDate}`
+      );
       const result = await res.json();
 
       if (result.success && Array.isArray(result.data)) {
         const employeesData = result.data.map((item: any) => item.employee);
         setEmployees(employeesData);
+        const initialValues: Record<string, any> = {};
+        result.data.forEach((item: any) => {
+          const id = item.employee.id;
+          initialValues[`tripTarget_${id}`] = item.tripTarget ?? undefined;
+          initialValues[`revenueTarget_${id}`] =
+            item.revenueTarget ?? undefined;
+        });
+
+        // Cập nhật form
+        formAdd.setFieldsValue(initialValues);
+        setLoading(false);
       } else {
         setEmployees([]);
-        message.error("Dữ liệu nhân viên không đúng định dạng");
+        messageApi.open({
+          type: "error",
+          content: "Dữ liệu nhân viên không đúng định dạng",
+        });
+        setLoading(false);
       }
     } catch (error) {
-      message.error("Lỗi lấy danh sách nhân viên");
+      setLoading(false);
+      messageApi.open({
+        type: "error",
+        content: "Lỗi lấy danh sách nhân viên",
+      });
     }
   };
   const onFinish = async (values: any) => {
@@ -73,18 +108,27 @@ const ModalAddKPIMonth = ({
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.message);
-
-      message.success("Tạo chỉ tiêu tháng thành công");
+      fetchData();
+      messageApi.open({
+        type: "success",
+        content: "Tạo chỉ tiêu tháng thành công",
+      });
     } catch (error: any) {
-      message.error(error?.message || "Tạo chỉ tiêu thất bại");
+      messageApi.open({
+        type: "error",
+        content: error?.message || "Tạo chỉ tiêu thất bại",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    if (open && selectedDate) {
+      formAdd.setFieldsValue({ date: selectedDate }); // đảm bảo field được set
+      fetchEmployees(selectedDate);
+    }
+  }, [open]);
 
   return (
     <Modal
@@ -97,6 +141,7 @@ const ModalAddKPIMonth = ({
       footer={null}
       width={1000}
     >
+      <ModalLoading isOpen={loading} />
       <h2 className="mb-4 text-xl font-semibold text-center">Thêm chỉ tiêu</h2>
 
       <Form
@@ -116,6 +161,12 @@ const ModalAddKPIMonth = ({
             <DatePicker
               picker="month"
               allowClear={false}
+              onChange={(date) => {
+                if (date) {
+                  setMontTarget((date.month() + 1).toString()); // Tháng là 0-based
+                  fetchEmployees(date);
+                }
+              }}
               disabledDate={(current) => {
                 return current && current < dayjs().startOf("month");
               }}
@@ -143,9 +194,11 @@ const ModalAddKPIMonth = ({
             {
               title: "Tên nhân viên",
               dataIndex: "name",
+              width: "230px",
             },
             {
               title: "Chỉ tiêu lượt xe",
+              width: "150px",
               render: (_, record) => (
                 <Form.Item
                   name={`tripTarget_${record.id}`}
@@ -157,6 +210,7 @@ const ModalAddKPIMonth = ({
             },
             {
               title: "Chỉ tiêu doanh thu (VNĐ)",
+              width: "150px",
               render: (_, record) => (
                 <Form.Item
                   name={`revenueTarget_${record.id}`}

@@ -2,17 +2,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as xlsx from "xlsx";
 import prisma from "@/lib/prisma";
-
 import crypto from "crypto";
 import { isUser } from "@/app/lib/auth";
 
-// Tính hash của file
-
-export async function POST(data: NextRequest, req: Request) {
-  if (!isUser(data)) {
+export async function POST(req: NextRequest) {
+  if (!isUser(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+
   try {
+    const monthParam = req.nextUrl.searchParams.get("month");
+    let month = parseInt(monthParam || "0", 10);
+
+    if (!month || month < 1 || month > 12) {
+      month = new Date().getMonth() + 1;
+    }
+
     const formData = await req.formData();
     const file = formData.get("file");
 
@@ -24,9 +29,8 @@ export async function POST(data: NextRequest, req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex"); // Tính hash
+    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex");
 
-    // Kiểm tra hash trong DB
     const existingFile = await prisma.importedFile.findUnique({
       where: { fileHash },
     });
@@ -38,7 +42,6 @@ export async function POST(data: NextRequest, req: Request) {
       );
     }
 
-    // Lưu hash vào DB
     await prisma.importedFile.create({
       data: {
         fileName: file.name,
@@ -46,34 +49,31 @@ export async function POST(data: NextRequest, req: Request) {
       },
     });
 
-    // Đọc file Excel, lấy sheet thứ 2 (index 1), nếu không có thì lấy sheet đầu tiên (index 0)
     const workbook = xlsx.read(buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[1] || workbook.SheetNames[0];
+    const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-
-    const rows = xlsx.utils.sheet_to_json(sheet, { defval: "" });
-
     const currentYear = new Date().getFullYear();
 
-    for (const row of rows) {
-      const data = row as Record<string, any>;
+    // Duyệt từ cột J đến khi nào hết tên ở hàng 4
+    const columnLetters = getColumnsFrom("J");
+    for (const col of columnLetters) {
+      const nameCell = sheet[`${col}4`];
+      const tripCell = sheet[`${col}9`];
+      const revenueCell = sheet[`${col}17`];
+      console.log(nameCell);
 
-      const name = (data["CVDV"] || "").toString().trim();
-      const tripTarget = parseInt(
-        data["LUOTXE"]?.toString().replace(/\D/g, "") || "0"
+      if (!nameCell || !nameCell.v) break; // Không có tên → dừng
+
+      const name = nameCell.v.toString().trim();
+      const tripTarget = Math.round(
+        parseFloat(tripCell?.v?.toString().replace(/,/g, "") || "0")
       );
-      const revenueRaw = data["DOANHTHU"];
-      const revenueTarget =
-        typeof revenueRaw === "number"
-          ? revenueRaw
-          : parseFloat(revenueRaw?.toString().replace(/,/g, "") || "0");
-
-      const month = parseInt(
-        data["THANG"]?.toString().replace(/\D/g, "") || "0"
+      const revenueTarget = parseFloat(
+        revenueCell?.v?.toString().replace(/,/g, "") || "0"
       );
 
-      if (!name || !month || isNaN(tripTarget) || isNaN(revenueTarget)) {
-        console.warn("Bỏ qua dòng dữ liệu không hợp lệ:", data);
+      if (!name || isNaN(tripTarget) || isNaN(revenueTarget)) {
+        console.warn("Bỏ qua dữ liệu không hợp lệ tại cột", col);
         continue;
       }
 
@@ -83,13 +83,13 @@ export async function POST(data: NextRequest, req: Request) {
         employee = await prisma.employee.create({ data: { name } });
       }
 
-      // Upsert chỉ tiêu tháng
+      // Upsert KPI tháng
       await prisma.monthlyKPI.upsert({
         where: {
           employeeId_year_month: {
             employeeId: employee.id,
             year: currentYear,
-            month: month,
+            month,
           },
         },
         update: {
@@ -99,7 +99,7 @@ export async function POST(data: NextRequest, req: Request) {
         create: {
           employeeId: employee.id,
           year: currentYear,
-          month: month,
+          month,
           tripTarget,
           revenueTarget,
         },
@@ -114,4 +114,32 @@ export async function POST(data: NextRequest, req: Request) {
       { status: 500 }
     );
   }
+}
+
+// Helper: Lấy danh sách cột từ "J" đến "ZZ"
+function getColumnsFrom(startCol: string): string[] {
+  const cols: string[] = [];
+  const start = columnToNumber(startCol);
+  for (let i = start; i < start + 100; i++) {
+    cols.push(numberToColumn(i));
+  }
+  return cols;
+}
+
+function columnToNumber(col: string): number {
+  let num = 0;
+  for (let i = 0; i < col.length; i++) {
+    num = num * 26 + col.charCodeAt(i) - 64;
+  }
+  return num;
+}
+
+function numberToColumn(n: number): string {
+  let s = "";
+  while (n > 0) {
+    const mod = (n - 1) % 26;
+    s = String.fromCharCode(65 + mod) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
 }

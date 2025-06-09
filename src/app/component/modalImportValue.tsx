@@ -3,54 +3,27 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, Button, message, Space, Modal } from "antd";
+import { Upload, Button, Space, Modal } from "antd";
 import type { UploadProps } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 interface ModalImportValueProps {
   open: boolean;
   onClose: () => void;
-  setLoading: (value: boolean) => void;
   loading: boolean;
+
+  handleSubmitImportValue: (file: File) => void;
 }
 const ModalImportValue = ({
   onClose,
   open,
-  setLoading,
   loading,
+  handleSubmitImportValue,
 }: ModalImportValueProps) => {
   const [file, setFile] = useState<File | null>(null);
 
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     setFile(file);
     return false; // Ngăn auto upload của Antd
-  };
-
-  const handleSubmit = async () => {
-    if (!file) {
-      message.warning("Vui lòng chọn file Excel!");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    setLoading(true);
-    try {
-      const res = await fetch("/api/targets/importActual", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Lỗi import");
-      setLoading(false);
-      message.success(`Import thành công cho tháng ${data.month}-${data.year}`);
-      onClose();
-    } catch (err: any) {
-      message.error(err.message);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -69,7 +42,7 @@ const ModalImportValue = ({
           type="primary"
           loading={loading}
           disabled={file ? false : true}
-          onClick={handleSubmit}
+          onClick={() => (file ? handleSubmitImportValue(file) : "")}
         >
           Cập nhật dữ liệu
         </Button>

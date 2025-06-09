@@ -212,8 +212,8 @@ export default function ReportPage() {
   return (
     <div>
       <ModalLoading isOpen={loading} />
-      <div className="flex w-full">
-        <div className="p-4 h-[100vh] shadow-2xl shadow-[#4a4a6a] rounded-br-xl rounded-tr-xl">
+      <div className="flex h-[calc(100vh-65px)] ">
+        <div className="p-4 h-full shadow-2xl shadow-[#4a4a6a] rounded-br-xl rounded-tr-xl">
           <div className="w-[200px]">
             <Button
               type="primary"
@@ -259,7 +259,7 @@ export default function ReportPage() {
             </div>
           </div>
         </div>
-        <div className="w-full h-[100vh] overflow-hidden">
+        <div className="w-full h-full overflow-hidden">
           <div className="h-[100%] flex flex-col">
             <div className="h-[50%]">
               <ReactApexChart

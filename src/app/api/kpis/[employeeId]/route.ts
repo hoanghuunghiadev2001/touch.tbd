@@ -67,7 +67,8 @@ export async function GET(req: NextRequest) {
 
 // PUT: cập nhật monthly hoặc daily
 export async function PUT(req: NextRequest) {
-  const employeeId = req.nextUrl.searchParams.get("employeeId");
+  const segments = req.nextUrl.pathname.split("/");
+  const employeeId = segments[segments.length - 1]; // lấy phần cuối URL
 
   if (!employeeId) {
     return NextResponse.json({ error: "Missing employeeId" }, { status: 400 });

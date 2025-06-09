@@ -200,16 +200,21 @@ export default function ManagerPage() {
       key: "actions",
       render: (_: any, record: DataUser) => (
         <Space>
-          <Button onClick={() => showModal(record)}>Sửa</Button>
+          <Button type="primary" onClick={() => showModal(record)}>
+            Sửa
+          </Button>
           <Popconfirm
             title="Xác nhận xóa?"
             onConfirm={() => deleteUser(record.id)}
           >
             <Button danger>Xóa</Button>
           </Popconfirm>
-          <Button onClick={() => resetPassword(record.id)} type="dashed">
-            Reset mật khẩu
-          </Button>
+          <Popconfirm
+            title="Xác nhận đổi mật khẩu?"
+            onConfirm={() => resetPassword(record.id)}
+          >
+            <Button type="dashed">Reset mật khẩu</Button>
+          </Popconfirm>
         </Space>
       ),
     },
