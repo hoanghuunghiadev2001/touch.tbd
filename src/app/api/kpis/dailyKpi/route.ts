@@ -4,12 +4,12 @@ import { isUser } from "@/app/lib/auth";
 
 const prisma = new PrismaClient();
 
-export async function POST(req: NextRequest, request: Request) {
+export async function POST(req: NextRequest) {
   if (!isUser(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
   try {
-    const body = await request.json();
+    const body = await req.json();
 
     const { year, month, employeeId, date, jobCode, ticketCode, amount } = body;
 
