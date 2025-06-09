@@ -8,7 +8,6 @@ export async function GET(req: NextRequest) {
   }
   const managers = await prisma.user.findMany({
     where: { role: "MANAGER" },
-    include: { managedBy: true },
   });
   return NextResponse.json({ managers });
 }

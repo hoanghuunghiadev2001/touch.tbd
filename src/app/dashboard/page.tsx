@@ -13,6 +13,7 @@ import {
   DatePicker,
   Form,
   Select,
+  Modal,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
@@ -21,8 +22,8 @@ import axios from "axios";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ModalAddKPIMonth from "../component/modalAddKPIMonth";
 import ModalLoading from "../component/modalLoading";
+import ModalAddKPIMonth from "../component/modalAddKPIMonth";
 import ModalDetailEmployee from "../component/modalDetailEmployee";
 import ModalImportValue from "../component/modalImportValue";
 import ModalImportTarget from "../component/modalImportTarget";
@@ -130,7 +131,7 @@ export default function UploadTargetForm() {
   const [modalAddKPIMonth, setModalAddKPIMonth] = useState(false);
   const [monthTarget, setMontTarget] = useState<string>();
   const [form] = Form.useForm();
-
+  const [messageApi, contextHolder] = message.useMessage();
   const [data, setData] = useState<Result>();
   const [nameFilter, setNameFilter] = useState<string>();
   const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
@@ -145,6 +146,8 @@ export default function UploadTargetForm() {
     useState<EmployeeDetailKPI>();
 
   useEffect(() => {
+    setLoading(true);
+
     async function fetchMetadata() {
       try {
         const res = await fetch("/api/infoEmployee");
@@ -152,10 +155,21 @@ export default function UploadTargetForm() {
 
         if (data.success) {
           setEmployees(data.employees);
+          setLoading(false);
         } else {
+          setLoading(false);
+          messageApi.open({
+            type: "error",
+            content: "Lỗi fetch API:" + data.message,
+          });
           console.error("Lỗi fetch API:", data.message);
         }
       } catch (error) {
+        setLoading(false);
+        messageApi.open({
+          type: "error",
+          content: "Fetch error:" + error,
+        });
         console.error("Fetch error:", error);
       }
     }
@@ -217,16 +231,25 @@ export default function UploadTargetForm() {
           EmployeeDetail(dataEmployeeDetail?.employeeId);
           fetchData();
           setEditTarget(false);
-          message.success("Updated successfully");
+          messageApi.open({
+            type: "success",
+            content: "Cập nhật thành công!",
+          });
           setLoading(false);
         } else {
           setLoading(false);
-          message.error(data.error || "Update failed");
+          messageApi.open({
+            type: "error",
+            content: "Cập nhật thất bại!",
+          });
         }
       } catch (error) {
         setLoading(false);
 
-        message.error("Update error");
+        messageApi.open({
+          type: "error",
+          content: "Cập nhật thất bại!:" + error,
+        });
       }
     }
   };
@@ -242,17 +265,24 @@ export default function UploadTargetForm() {
 
       const res = await axios.get<Result>(`/api/targets?${params.toString()}`);
       setData(res.data);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
+
       console.error("Failed to fetch data", error);
     }
-    setLoading(false);
   };
 
   const handleSubmit = async (month: string, file?: File) => {
     if (!file) {
-      message.warning("Vui lòng chọn file Excel!");
+      messageApi.open({
+        type: "warning",
+        content: "Vui lòng chọn file Excel!",
+      });
       return;
     }
+    setLoading(true);
+
     const formData = new FormData();
     formData.append("file", file);
     setLoading(true);
@@ -265,11 +295,19 @@ export default function UploadTargetForm() {
       if (!res.ok) {
         throw new Error(data.error || "Lỗi import");
       }
-      message.success(data.message || "Import KPI thành công");
+      messageApi.open({
+        type: "success",
+        content: data.message || "Import KPI thành công",
+      });
       setFile(null); // reset file sau khi import thành công
       fetchData(); // load lại dữ liệu sau import
+      setLoading(false);
     } catch (err: any) {
-      message.error(err.message || "Lỗi import dữ liệu");
+      setLoading(false);
+      messageApi.open({
+        type: "error",
+        content: err.message || "Lỗi import dữ liệu",
+      });
     } finally {
       setLoading(false);
     }
@@ -283,11 +321,15 @@ export default function UploadTargetForm() {
     amount: number,
     setEditingKey: any
   ) => {
+    setLoading(true);
     if (dataEmployeeDetail)
       try {
         // Validate date
         if (!date) {
-          message.error("Date is required");
+          messageApi.open({
+            type: "warning",
+            content: "Date is required!",
+          });
           return;
         }
         const monthYear =
@@ -314,21 +356,34 @@ export default function UploadTargetForm() {
         });
         const data = await res.json();
         if (res.ok) {
-          message.success("Updated successfully");
+          messageApi.open({
+            type: "success",
+            content: "Cập nhật thành công",
+          });
           EmployeeDetail(dataEmployeeDetail?.employeeId);
           fetchData();
+          setLoading(false);
           setEditingKey(null);
           return res.ok;
         } else {
-          message.error(data.error || "Update failed");
+          setLoading(false);
+          messageApi.open({
+            type: "error",
+            content: "Cập nhật thất bại",
+          });
         }
       } catch (error) {
-        message.error("Update error");
+        setLoading(false);
+        messageApi.open({
+          type: "error",
+          content: "Cập nhật thất bại",
+        });
       }
   };
 
   // Delete daily KPI
   const deleteDailyKPI = async (id: string) => {
+    setLoading(true);
     if (dataEmployeeDetail?.employeeId)
       try {
         const res = await fetch(`/api/kpis/${dataEmployeeDetail?.employeeId}`, {
@@ -338,14 +393,26 @@ export default function UploadTargetForm() {
         });
         const data = await res.json();
         if (res.ok) {
-          message.success("Deleted successfully");
+          messageApi.open({
+            type: "success",
+            content: `Xóa thành công`,
+          });
           EmployeeDetail(dataEmployeeDetail?.employeeId);
           fetchData();
+          setLoading(false);
         } else {
-          message.error(data.error || "Delete failed");
+          setLoading(false);
+          messageApi.open({
+            type: "error",
+            content: data.error || "Delete failed",
+          });
         }
       } catch (error) {
-        message.error("Delete error");
+        setLoading(false);
+        messageApi.open({
+          type: "error",
+          content: "Date is required!",
+        });
       }
   };
 
@@ -386,30 +453,36 @@ export default function UploadTargetForm() {
       title: "Tên nhân viên",
       dataIndex: "name",
       key: "name",
+      width: "200px",
     },
     {
       title: "Tháng",
       dataIndex: "month",
       key: "month",
       align: "center",
+      width: "100px",
     },
     {
       title: "Năm",
       dataIndex: "year",
       key: "year",
       align: "center",
+      width: "100px",
     },
     {
       title: "Chỉ tiêu lượt xe",
       dataIndex: "tripTarget",
       key: "tripTarget",
       align: "right",
+      width: "150px",
     },
     {
       title: "Thực tế lượt xe",
       dataIndex: "totalTrips",
       key: "totalTrips",
       align: "right",
+      width: "150px",
+
       render: (_, record) => (
         <p
           className={`${
@@ -427,6 +500,8 @@ export default function UploadTargetForm() {
       dataIndex: "revenueTarget",
       key: "revenueTarget",
       align: "right",
+      width: "200px",
+
       render: (_, record) => <p>{aroundNumber(record.revenueTarget)}</p>,
     },
     {
@@ -434,6 +509,7 @@ export default function UploadTargetForm() {
       dataIndex: "totalRevenue",
       key: "totalRevenue",
       align: "right",
+      width: "200px",
       render: (_, record) => (
         <p
           className={`${
@@ -449,6 +525,8 @@ export default function UploadTargetForm() {
     },
     {
       title: "Chi tiết",
+      width: "100px",
+
       render: (_, record) => (
         <Space
           className="text-blue-600 cursor-pointer"
@@ -471,6 +549,43 @@ export default function UploadTargetForm() {
     return number.toLocaleString("vi-VN");
   }
 
+  const handleSubmitImportValue = async (file: File) => {
+    if (!file) {
+      messageApi.open({
+        type: "warning",
+        content: "Vui lòng chọn file Excel!",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/targets/importActual", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Lỗi import");
+      setLoading(false);
+      messageApi.open({
+        type: "success",
+        content: `Import thành công cho tháng ${data.month}-${data.year}`,
+      });
+      setOpenModalValue(false);
+    } catch (err: any) {
+      messageApi.open({
+        type: "error",
+        content: err.message || "Lỗi import dữ liệu",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!openModalValue) {
       setLoading(false);
@@ -479,12 +594,15 @@ export default function UploadTargetForm() {
 
   return (
     <div className="pt-2 pb-5 px-5 ">
+      {contextHolder}
       <ModalLoading isOpen={loading} />
       <ModalAddKPIMonth
+        messageApi={messageApi}
         setOpenModalTarget={setOpenModalTarget}
         onclose={() => setModalAddKPIMonth(false)}
         open={modalAddKPIMonth}
         setMontTarget={setMontTarget}
+        fetchData={fetchData}
       />
       <ModalDetailEmployee
         editDailyKPI={editDailyKPI}
@@ -501,11 +619,9 @@ export default function UploadTargetForm() {
         loading={loading}
         onClose={() => {
           setOpenModalValue(false);
-          setLoading(false);
-          fetchData();
         }}
         open={openModalValue}
-        setLoading={setLoading}
+        handleSubmitImportValue={handleSubmitImportValue}
       />
       <ModalImportTarget
         month={monthTarget ?? ""}
@@ -594,6 +710,7 @@ export default function UploadTargetForm() {
         size="small"
         columns={columns}
         dataSource={tableData || []}
+        scroll={{ x: "100%", y: "calc(100vh - 200px)" }}
       />
     </div>
   );
