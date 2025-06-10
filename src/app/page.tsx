@@ -573,7 +573,7 @@ export default function UploadTargetForm() {
       setLoading(false);
       messageApi.open({
         type: "success",
-        content: `Import thành công cho tháng ${data.month}-${data.year}`,
+        content: `Import thành công cho`,
       });
       setOpenModalValue(false);
     } catch (err: any) {
