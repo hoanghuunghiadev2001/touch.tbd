@@ -39,14 +39,6 @@ export async function POST(req: NextRequest) {
     });
 
     // Tạo thư mục uploads nếu chưa có
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir);
-    }
-
-    const filename = `${Date.now()}-${file.name}`;
-    const filepath = path.join(uploadsDir, filename);
-    await fsPromises.writeFile(filepath, buffer);
 
     function excelDateToJSDate(excelDate: number): Date {
       const excelEpoch = new Date(Date.UTC(1899, 11, 30));
