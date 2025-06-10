@@ -282,6 +282,7 @@ export default function ManagerPage() {
   return (
     <div className="p-6">
       <ModalLoading isOpen={loading} />
+      {contextHolder}
       <div className="flex justify-between mb-4 items-center">
         <h1 className="text-2xl font-bold">Quản lý Manager</h1>
         <Button type="primary" onClick={() => showModal()}>
