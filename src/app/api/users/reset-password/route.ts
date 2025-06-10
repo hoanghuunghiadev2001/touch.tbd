@@ -6,45 +6,54 @@ import { isAdmin } from "@/app/lib/auth";
 import { sendEmail } from "@/lib/mail";
 
 function generateRandomPassword(length = 12): string {
+  // Đảm bảo độ dài tối thiểu là 8
+  if (length < 8) length = 8;
+
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
   const digits = "0123456789";
   const special = "!@#$%^&*()_+-=[]{};:,.<>?";
-
   const allChars = uppercase + lowercase + digits + special;
 
   const getRandomChar = (chars: string) =>
     chars.charAt(Math.floor(Math.random() * chars.length));
 
+  // Tạo mật khẩu đảm bảo có đủ nhóm ký tự
   function createPassword(): string {
-    let password = [
+    const password = [
       getRandomChar(uppercase),
       getRandomChar(lowercase),
       getRandomChar(digits),
       getRandomChar(special),
     ];
 
+    // Thêm ký tự ngẫu nhiên cho đến khi đủ độ dài
     for (let i = password.length; i < length; i++) {
       password.push(getRandomChar(allChars));
     }
 
-    password = password.sort(() => Math.random() - 0.5);
-    return password.join("");
+    // Trộn ngẫu nhiên
+    return password.sort(() => Math.random() - 0.5).join("");
   }
 
+  // Danh sách blacklist
   const blacklist = ["TBD", "123456"];
-  let password = "";
   const maxAttempts = 10;
   let attempts = 0;
+  let password = "";
 
+  // Lặp để sinh mật khẩu không chứa chuỗi cấm và có đủ độ dài
   do {
-    if (attempts++ > maxAttempts) {
+    if (++attempts > maxAttempts) {
       throw new Error(
-        "Không thể tạo mật khẩu thỏa điều kiện sau nhiều lần thử"
+        "Không thể tạo mật khẩu thỏa điều kiện sau nhiều lần thử."
       );
     }
     password = createPassword();
-  } while (blacklist.some((blk) => password.includes(blk)));
+  } while (
+    password.length < 8 ||
+    blacklist.some((blk) => password.includes(blk))
+  );
 
   return password;
 }
