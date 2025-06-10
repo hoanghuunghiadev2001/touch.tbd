@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import * as xlsx from "xlsx";
 import fsPromises from "fs/promises";
-import prisma from "@/lib/prisma";
+import os from "os";
 import crypto from "crypto";
+import prisma from "@/lib/prisma";
 import { isUser } from "@/app/lib/auth";
 
 export async function POST(req: NextRequest) {
   if (!isUser(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file");
@@ -24,10 +27,8 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex");
 
-    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex"); // Tính hash
-
-    // Kiểm tra hash trong DB
     const existingFile = await prisma.importedFile.findUnique({
       where: { fileHash },
     });
@@ -39,7 +40,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Lưu hash vào DB
     await prisma.importedFile.create({
       data: {
         fileName: file.name,
@@ -47,21 +47,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Tạo thư mục uploads nếu chưa có
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir);
-    }
-
+    // 📌 Ghi vào thư mục tạm dùng được ở mọi môi trường
+    const tempDir = os.tmpdir();
     const filename = `${Date.now()}-${file.name}`;
-    const filepath = path.join(uploadsDir, filename);
+    const filepath = path.join(tempDir, filename);
     await fsPromises.writeFile(filepath, buffer);
 
     function excelDateToJSDate(excelDate: number): Date {
-      // Excel bắt đầu tính từ 1899-12-30
       const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-      const jsDate = new Date(excelEpoch.getTime() + excelDate * 86400000); // 86400000 ms = 1 ngày
-      return jsDate;
+      return new Date(excelEpoch.getTime() + excelDate * 86400000);
     }
 
     function formatDateToDDMMYYYY(date: Date): string {
@@ -73,14 +67,12 @@ export async function POST(req: NextRequest) {
 
     try {
       const workbook = xlsx.read(buffer, { type: "buffer" });
-      // Lấy sheet thứ 2 nếu có, không thì lấy sheet đầu tiên
       const sheetName = workbook.SheetNames[1] || workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const rows = xlsx.utils.sheet_to_json(sheet, { defval: "" });
 
       for (const row of rows) {
         const data = row as Record<string, any>;
-
         const name = (data["cvdv"] || "").toString().trim();
         const rawDate = data["ngaygs"]?.toString().trim();
 
@@ -91,22 +83,17 @@ export async function POST(req: NextRequest) {
 
         const jsDate = excelDateToJSDate(rawDate);
         const formattedDate = formatDateToDDMMYYYY(jsDate);
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [day, month, year] = formattedDate.split("/").map(Number);
-
         const jobCode = (data["mahang"] || "").toString().trim();
         const ticketCode = (data["sophieu"] || "").toString().trim();
         const amount =
-          (data["thanhtien"] || "0").toString().replace(/\D/g, "") || 0;
+          (data["thanhtien"] || "0").toString().replace(/\D/g, "") || "0";
 
-        // Tìm hoặc tạo nhân viên
         let employee = await prisma.employee.findUnique({ where: { name } });
         if (!employee) {
           employee = await prisma.employee.create({ data: { name } });
         }
 
-        // Tìm hoặc tạo MonthlyKPI
         let monthlyKPI = await prisma.monthlyKPI.findFirst({
           where: {
             employeeId: employee.id,
@@ -125,19 +112,20 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // Ghi vào bảng DailyKPI
         await prisma.dailyKPI.create({
           data: {
             monthlyKPIId: monthlyKPI.id,
             date: jsDate,
             jobCode,
             ticketCode,
-            amount,
+            amount: Number(amount),
           },
         });
       }
 
-      return NextResponse.json({ message: "Import DailyKPI thành công" });
+      return NextResponse.json({
+        message: "Import DailyKPI thành công",
+      });
     } finally {
       try {
         await fsPromises.unlink(filepath);
