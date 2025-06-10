@@ -6,6 +6,7 @@ import { isAdmin } from "@/app/lib/auth";
 import { sendEmail } from "@/lib/mail";
 
 function generateRandomPassword(length = 12): string {
+  if (length < 8) length = 8;
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
   const digits = "0123456789";
@@ -53,9 +54,9 @@ function generateRandomPassword(length = 12): string {
   return password;
 }
 export async function POST(req: NextRequest) {
-  // if (!isAdmin(req)) {
-  //   return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  // }
+  if (!isAdmin(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
 
   const { email, name, role } = await req.json();
 

@@ -14,6 +14,7 @@ import {
   message,
   Select,
 } from "antd";
+import ModalLoading from "../component/modalLoading";
 
 interface Manager {
   id: string;
@@ -38,8 +39,11 @@ export default function ManagerPage() {
   const [form] = Form.useForm();
   const [editing, setEditing] = useState<DataUser | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const fetchAllUser = async () => {
+    setLoading(true);
     const res = await fetch("/api/users/all-user", {
       method: "GET",
       headers: {
@@ -48,10 +52,15 @@ export default function ManagerPage() {
     });
 
     if (!res.ok) {
+      setLoading(false);
       const error = await res.json();
+      messageApi.open({
+        type: "error",
+        content: error.error || "Tải danh sách thất bại",
+      });
       throw new Error(error.error || "Failed to fetch user");
     }
-
+    setLoading(false);
     const data: DataUser[] = await res.json();
     setManagers(data);
   };
@@ -68,6 +77,7 @@ export default function ManagerPage() {
   };
 
   async function deleteUser(id: string) {
+    setLoading(true);
     try {
       const res = await fetch("/api/users", {
         method: "DELETE",
@@ -79,17 +89,32 @@ export default function ManagerPage() {
 
       if (!res.ok) {
         const error = await res.json();
+        setLoading(false);
+        messageApi.open({
+          type: "error",
+          content: error.error || "Xóa user thất bại",
+        });
         throw new Error(error.error || "Xóa user thất bại");
       }
-
+      setLoading(false);
+      messageApi.open({
+        type: "success",
+        content: "Xóa thành công",
+      });
       fetchAllUser();
       // Có thể thêm thông báo hoặc cập nhật UI ở đây
     } catch (err: any) {
+      setLoading(false);
+      messageApi.open({
+        type: "error",
+        content: "Lỗi xóa user:" + err.message,
+      });
       console.error("Lỗi xóa user:", err.message);
     }
   }
 
   async function resetPassword(userId: string) {
+    setLoading(true);
     try {
       const res = await fetch("/api/users/reset-password", {
         method: "POST",
@@ -101,19 +126,35 @@ export default function ManagerPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
+        setLoading(false);
+        messageApi.open({
+          type: "error",
+          content: errorData.error || "Reset mật khẩu thất bại",
+        });
+
         throw new Error(errorData.error || "Reset mật khẩu thất bại");
       }
 
       const data = await res.json();
+      setLoading(false);
+      messageApi.open({
+        type: "success",
+        content: "Reset mật khẩu thành công",
+      });
       console.log(data.message);
       alert(data.message); // Hoặc dùng message.success của Antd
     } catch (err: any) {
+      setLoading(false);
       console.error("Lỗi reset mật khẩu:", err.message);
-      alert(err.message);
+      messageApi.open({
+        type: "error",
+        content: err.message,
+      });
     }
   }
 
   const handleOk = async () => {
+    setLoading(true);
     try {
       const values = await form.validateFields();
 
@@ -137,10 +178,19 @@ export default function ManagerPage() {
 
         if (!res.ok) {
           const error = await res.json();
+          setLoading(false);
+          messageApi.open({
+            type: "error",
+            content: error.error || "Cập nhật thất bại",
+          });
           throw new Error(error.error || "Cập nhật thất bại");
         }
 
-        message.success("Cập nhật thành công");
+        setLoading(false);
+        messageApi.open({
+          type: "success",
+          content: "Cập nhật thành công",
+        });
       } else {
         // Thêm mới user (POST)
         const now = new Date().toISOString();
@@ -161,18 +211,29 @@ export default function ManagerPage() {
 
         if (!res.ok) {
           const error = await res.json();
+          setLoading(false);
+
+          messageApi.open({
+            type: "error",
+            content: error.error || "Thêm mới thất bại",
+          });
           throw new Error(error.error || "Thêm mới thất bại");
         }
 
-        message.success("Thêm mới thành công");
+        setLoading(false);
       }
 
       setIsModalOpen(false);
       form.resetFields();
       fetchAllUser(); // Reload danh sách
+      setLoading(false);
     } catch (err: any) {
       console.error(err);
-      message.error(err.message || "Đã xảy ra lỗi");
+      messageApi.open({
+        type: "error",
+        content: err.message || "Đã xảy ra lỗi",
+      });
+      setLoading(false);
     }
   };
 
@@ -222,6 +283,7 @@ export default function ManagerPage() {
 
   return (
     <div className="p-6">
+      <ModalLoading isOpen={loading} />
       <div className="flex justify-between mb-4 items-center">
         <h1 className="text-2xl font-bold">Quản lý Manager</h1>
         <Button type="primary" onClick={() => showModal()}>
