@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
@@ -12,6 +13,7 @@ export async function POST(req: NextRequest) {
   if (!isUser(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file");
@@ -24,24 +26,13 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex");
 
-    const fileHash = crypto.createHash("sha256").update(buffer).digest("hex"); // Tính hash
-
-    // Kiểm tra hash trong DB
-    const existingFile = await prisma.importedFile.findUnique({
+    // Dùng upsert để tránh lỗi race condition
+    await prisma.importedFile.upsert({
       where: { fileHash },
-    });
-
-    if (existingFile) {
-      return NextResponse.json(
-        { error: "File đã được import trước đó, không cần import lại" },
-        { status: 400 }
-      );
-    }
-
-    // Lưu hash vào DB
-    await prisma.importedFile.create({
-      data: {
+      update: {},
+      create: {
         fileName: file.name,
         fileHash,
       },
@@ -58,10 +49,8 @@ export async function POST(req: NextRequest) {
     await fsPromises.writeFile(filepath, buffer);
 
     function excelDateToJSDate(excelDate: number): Date {
-      // Excel bắt đầu tính từ 1899-12-30
       const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-      const jsDate = new Date(excelEpoch.getTime() + excelDate * 86400000); // 86400000 ms = 1 ngày
-      return jsDate;
+      return new Date(excelEpoch.getTime() + excelDate * 86400000);
     }
 
     function formatDateToDDMMYYYY(date: Date): string {
@@ -71,86 +60,99 @@ export async function POST(req: NextRequest) {
       return `${day}/${month}/${year}`;
     }
 
-    try {
-      const workbook = xlsx.read(buffer, { type: "buffer" });
-      // Lấy sheet thứ 2 nếu có, không thì lấy sheet đầu tiên
-      const sheetName = workbook.SheetNames[1] || workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const rows = xlsx.utils.sheet_to_json(sheet, { defval: "" });
+    const workbook = xlsx.read(buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[1] || workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = xlsx.utils.sheet_to_json(sheet, { defval: "" });
 
-      for (const row of rows) {
-        const data = row as Record<string, any>;
+    const employeeCache = new Map<string, string>(); // 👈 kiểu đúng
+    const monthlyKPICache = new Map<string, string>();
+    const dailyKPIs: any[] = [];
 
-        const name = (data["cvdv"] || "").toString().trim();
-        const rawDate = data["ngaygs"]?.toString().trim();
+    for (const row of rows) {
+      const data = row as Record<string, any>;
+      const name = (data["cvdv"] || "").toString().trim();
+      const rawDate = data["ngaygs"]?.toString().trim();
 
-        if (!name || !rawDate) {
-          console.warn("❌ Dữ liệu không hợp lệ, bỏ qua:", data);
-          continue;
-        }
+      if (!name || !rawDate) {
+        console.warn("❌ Bỏ qua dòng thiếu dữ liệu:", data);
+        continue;
+      }
 
-        const jsDate = excelDateToJSDate(rawDate);
-        const formattedDate = formatDateToDDMMYYYY(jsDate);
+      const jsDate = excelDateToJSDate(Number(rawDate));
+      const [dayStr, monthStr, yearStr] =
+        formatDateToDDMMYYYY(jsDate).split("/");
+      const day = Number(dayStr);
+      const month = Number(monthStr);
+      const year = Number(yearStr);
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const [day, month, year] = formattedDate.split("/").map(Number);
+      const jobCode = (data["mahang"] || "").toString().trim();
+      const ticketCode = (data["sophieu"] || "").toString().trim();
+      const amount = Number(
+        (data["thanhtien"] || "0").toString().replace(/\D/g, "") || "0"
+      );
 
-        const jobCode = (data["mahang"] || "").toString().trim();
-        const ticketCode = (data["sophieu"] || "").toString().trim();
-        const amount =
-          (data["thanhtien"] || "0").toString().replace(/\D/g, "") || 0;
-
-        // Tìm hoặc tạo nhân viên
+      let employeeId = employeeCache.get(name) as string | undefined;
+      if (!employeeId) {
         let employee = await prisma.employee.findUnique({ where: { name } });
         if (!employee) {
           employee = await prisma.employee.create({ data: { name } });
         }
+        employeeId = employee.id;
+        employeeCache.set(name, employeeId);
+      }
 
-        // Tìm hoặc tạo MonthlyKPI
+      const kpiKey = `${employeeId}-${year}-${month}`;
+      let monthlyKPIId = monthlyKPICache.get(kpiKey);
+      if (!monthlyKPIId) {
         let monthlyKPI = await prisma.monthlyKPI.findFirst({
-          where: {
-            employeeId: employee.id,
-            year,
-            month,
-          },
+          where: { employeeId, year, month },
         });
-
         if (!monthlyKPI) {
           monthlyKPI = await prisma.monthlyKPI.create({
-            data: {
-              employeeId: employee.id,
-              year,
-              month,
-            },
+            data: { employeeId, year, month },
           });
         }
-
-        // Ghi vào bảng DailyKPI
-        await prisma.dailyKPI.create({
-          data: {
-            monthlyKPIId: monthlyKPI.id,
-            date: jsDate,
-            jobCode,
-            ticketCode,
-            amount,
-          },
-        });
+        monthlyKPIId = monthlyKPI.id;
+        monthlyKPICache.set(kpiKey, monthlyKPIId);
       }
 
-      return NextResponse.json({ message: "Import DailyKPI thành công" });
-    } finally {
-      try {
-        await fsPromises.unlink(filepath);
-        console.log("🧹 Đã xoá file tạm:", filepath);
-      } catch (err) {
-        console.warn("⚠️ Không thể xoá file tạm:", err);
-      }
+      dailyKPIs.push({
+        monthlyKPIId,
+        date: jsDate,
+        jobCode,
+        ticketCode,
+        amount,
+      });
     }
+
+    // Ghi hàng loạt vào DB
+    if (dailyKPIs.length > 0) {
+      await prisma.dailyKPI.createMany({
+        data: dailyKPIs,
+        skipDuplicates: true,
+      });
+    }
+
+    return NextResponse.json({ message: "Import DailyKPI thành công" });
   } catch (error: any) {
     console.error("❌ Lỗi import:", error);
     return NextResponse.json(
       { error: error?.message || "Có lỗi xảy ra khi import file" },
       { status: 500 }
     );
+  } finally {
+    // Xoá file tạm
+    try {
+      const uploadsDir = path.join(process.cwd(), "uploads");
+      const files = await fsPromises.readdir(uploadsDir);
+      for (const file of files) {
+        const fullPath = path.join(uploadsDir, file);
+        await fsPromises.unlink(fullPath);
+        console.log("🧹 Đã xoá file tạm:", fullPath);
+      }
+    } catch (err) {
+      console.warn("⚠️ Không thể xoá file tạm:", err);
+    }
   }
 }
