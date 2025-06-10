@@ -569,7 +569,7 @@ export default function EmployeeDashboard() {
                         : totalPercentDoanhThu
                     }%`,
                   }}
-                  className=" absolute left-0 top-0 h-full bg-gradient-to-bl from-[#00c0ff] to-[#4218b8] rounded-2xl w-full"
+                  className=" absolute left-0 top-0 h-full bg-gradient-to-bl from-[#00c0ff] to-[#4218b8] rounded-2xl"
                 >
                   <div className="w-full relative h-full">
                     <Text className="font-bold absolute top-[-25px] right-[-20px] h-full">
@@ -598,7 +598,11 @@ export default function EmployeeDashboard() {
               <div className="my-7 relative bg-[#bebebe] rounded-2xl h-3 w-full ">
                 <div
                   style={{
-                    width: `${totalPercentLuotXe}%`,
+                    width: `${
+                      Number(totalPercentLuotXe) > 100
+                        ? 100
+                        : totalPercentLuotXe
+                    }%`,
                   }}
                   className=" absolute left-0 top-0 h-full bg-gradient-to-bl from-[#fec194] to-[#ff0061] rounded-2xl"
                 >
