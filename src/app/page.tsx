@@ -711,6 +711,7 @@ export default function UploadTargetForm() {
         columns={columns}
         dataSource={tableData || []}
         scroll={{ x: "100%", y: "calc(100vh - 200px)" }}
+        pagination={{ pageSize: 15 }}
       />
     </div>
   );
