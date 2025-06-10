@@ -16,12 +16,16 @@ function parseMonthYear(monthYear: string): { month: number; year: number } {
 }
 
 // GET: /api/kpis/:employeeId?monthYear=2025-05
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  context: { params: { employeeId: string } }
+) {
+  const paramsAwait = await context.params;
+  const { employeeId } = paramsAwait;
+  const monthYear = req.nextUrl.searchParams.get("monthYear");
   if (!isUser(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-  const monthYear = req.nextUrl.searchParams.get("monthYear");
-  const employeeId = req.nextUrl.searchParams.get("employeeId");
 
   if (!employeeId) {
     return NextResponse.json({ error: "Missing employeeId" }, { status: 400 });

@@ -27,6 +27,7 @@ import ModalDetailEmployee from "./component/modalDetailEmployee";
 import { useRouter } from "next/navigation";
 import ModalImportTarget from "./component/modalImportTarget";
 import ModalAddKPIMonth from "./component/modalAddKPIMonth";
+import EmployeeManagerModal from "./component/modalEmployees";
 
 export interface Result {
   success: boolean;
@@ -141,6 +142,8 @@ export default function UploadTargetForm() {
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
     []
   );
+  const [modalManagerEmployees, setModalManagerEmployees] =
+    useState<boolean>(false);
 
   const [dataEmployeeDetail, setDataEmployeeDetail] =
     useState<EmployeeDetailKPI>();
@@ -634,6 +637,11 @@ export default function UploadTargetForm() {
         setLoading={setLoading}
         handleSubmit={handleSubmit}
       />
+
+      <EmployeeManagerModal
+        onClose={() => setModalManagerEmployees(false)}
+        open={modalManagerEmployees}
+      />
       <div className="flex justify-between items-center my-4">
         <Space>
           <Form form={form}>
@@ -675,6 +683,14 @@ export default function UploadTargetForm() {
           />
           <Button type="primary" onClick={fetchData} loading={loading}>
             Tìm kiếm
+          </Button>
+
+          <Button
+            type="primary"
+            loading={loading}
+            onClick={() => setModalManagerEmployees(true)}
+          >
+            Quản lý CVDV
           </Button>
         </Space>
 

@@ -8,8 +8,9 @@ datasource db {
 }
 
 model Employee {
-  id   String @id @default(uuid())
-  name String @unique
+  id           String  @id @default(uuid())
+  name         String  @unique
+  employeeCode String? @unique // 👈 Thêm dòng này
   // Nếu muốn thêm mã nhân viên thì thêm trường employeeCode String @unique?
 
   monthlyKPIs MonthlyKPI[]
