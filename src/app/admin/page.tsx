@@ -141,8 +141,6 @@ export default function ManagerPage() {
         type: "success",
         content: "Reset mật khẩu thành công",
       });
-      console.log(data.message);
-      alert(data.message); // Hoặc dùng message.success của Antd
     } catch (err: any) {
       setLoading(false);
       console.error("Lỗi reset mật khẩu:", err.message);
