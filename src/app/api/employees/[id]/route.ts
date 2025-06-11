@@ -1,15 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
-const prisma = new PrismaClient();
-
-export async function PUT(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
-  const paramsAwait = await context.params;
-  const { id } = paramsAwait;
+export async function PUT(req: NextRequest, context: any) {
+  const { id } = context.params;
   const data = await req.json();
 
   try {

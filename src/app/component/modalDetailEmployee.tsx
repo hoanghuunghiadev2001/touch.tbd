@@ -318,63 +318,63 @@ const ModalDetailEmployee = ({
         return record.amount?.toLocaleString() ?? "-";
       },
     },
-    {
-      title: "Hành động",
-      dataIndex: "actions",
-      width: 160,
-      render: (_, record) => {
-        const editable = isEditing(record);
-        const isNew = record.id === "new";
+    // {
+    //   title: "Hành động",
+    //   dataIndex: "actions",
+    //   width: 160,
+    //   render: (_, record) => {
+    //     const editable = isEditing(record);
+    //     const isNew = record.id === "new";
 
-        if (isNew) {
-          return (
-            <Space>
-              <Button type="link" onClick={handleAddNewKPI}>
-                Lưu
-              </Button>
-              <Button type="link" danger onClick={() => setAdding(false)}>
-                Huỷ
-              </Button>
-            </Space>
-          );
-        }
+    //     if (isNew) {
+    //       return (
+    //         <Space>
+    //           <Button type="link" onClick={handleAddNewKPI}>
+    //             Lưu
+    //           </Button>
+    //           <Button type="link" danger onClick={() => setAdding(false)}>
+    //             Huỷ
+    //           </Button>
+    //         </Space>
+    //       );
+    //     }
 
-        return editable ? (
-          <Space>
-            <Button type="link" onClick={() => save(record.id)}>
-              Lưu
-            </Button>
-            <Button type="link" onClick={cancel}>
-              Huỷ
-            </Button>
-          </Space>
-        ) : (
-          <Space>
-            <Button
-              type="link"
-              disabled={editingKey !== null || adding}
-              onClick={() => edit(record)}
-            >
-              Sửa
-            </Button>
-            <Popconfirm
-              title="Bạn có chắc muốn xoá?"
-              onConfirm={() => deleteDailyKPI(record.id)}
-              okText="Xoá"
-              cancelText="Huỷ"
-            >
-              <Button
-                type="link"
-                danger
-                disabled={editingKey !== null || adding}
-              >
-                Xoá
-              </Button>
-            </Popconfirm>
-          </Space>
-        );
-      },
-    },
+    //     return editable ? (
+    //       <Space>
+    //         <Button type="link" onClick={() => save(record.id)}>
+    //           Lưu
+    //         </Button>
+    //         <Button type="link" onClick={cancel}>
+    //           Huỷ
+    //         </Button>
+    //       </Space>
+    //     ) : (
+    //       <Space>
+    //         <Button
+    //           type="link"
+    //           disabled={editingKey !== null || adding}
+    //           onClick={() => edit(record)}
+    //         >
+    //           Sửa
+    //         </Button>
+    //         <Popconfirm
+    //           title="Bạn có chắc muốn xoá?"
+    //           onConfirm={() => deleteDailyKPI(record.id)}
+    //           okText="Xoá"
+    //           cancelText="Huỷ"
+    //         >
+    //           <Button
+    //             type="link"
+    //             danger
+    //             disabled={editingKey !== null || adding}
+    //           >
+    //             Xoá
+    //           </Button>
+    //         </Popconfirm>
+    //       </Space>
+    //     );
+    //   },
+    // },
   ];
 
   function formatToVND(amount: number): string {

@@ -16,10 +16,7 @@ function parseMonthYear(monthYear: string): { month: number; year: number } {
 }
 
 // GET: /api/kpis/:employeeId?monthYear=2025-05
-export async function GET(
-  req: NextRequest,
-  context: { params: { employeeId: string } }
-) {
+export async function GET(req: NextRequest, context: any) {
   const paramsAwait = await context.params;
   const { employeeId } = paramsAwait;
   const monthYear = req.nextUrl.searchParams.get("monthYear");

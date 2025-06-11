@@ -710,14 +710,24 @@ export default function UploadTargetForm() {
             Cập nhật dữ liệu
           </Button>
           <Button
-            type="dashed"
+            className="!bg-[#104b22] !text-white"
+            loading={loading}
+            onClick={() => {
+              setLoading(true);
+              router.push(`/dashboard/reportTarget`);
+            }}
+          >
+            Báo cáo Tổng hợp
+          </Button>
+          <Button
+            className="!bg-[#f54e4e] !text-white"
             loading={loading}
             onClick={() => {
               setLoading(true);
               router.push(`/dashboard/report`);
             }}
           >
-            Xem báo cáo
+            Báo cáo chi tiết
           </Button>
         </Space>
       </div>

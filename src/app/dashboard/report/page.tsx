@@ -24,6 +24,8 @@ import { Color } from "antd/es/color-picker";
 import Link from "next/link";
 import ModalLoading from "@/app/component/modalLoading";
 import { useRouter } from "next/navigation";
+import { HomeFilled } from "@ant-design/icons";
+import ClientChart from "@/app/component/ClientChart";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -458,19 +460,33 @@ export default function EmployeeDashboard() {
   }, [dateRange, employeeId, industryCode]);
 
   return (
-    <div className="flex w-full gap-4 p-4 h-[calc(100vh-65px)]">
+    <div className="flex w-full gap-4 p-4 h-[calc(100vh)]">
       <ModalLoading isOpen={loading} />
       <div className="w-[250px] h-full shrink-0">
-        <Button
-          type="primary"
-          onClick={() => {
-            setLoading(true);
-            router.push("/");
-          }}
-        >
-          Trang chủ
-        </Button>
-
+        <h2 className="text-2xl font-semibold text-center mb-2">
+          Báo cáo chi tiết
+        </h2>
+        <div className="gap-4 flex justify-between items-center mb-2">
+          <Button
+            type="primary"
+            className="!w-full"
+            onClick={() => {
+              setLoading(true);
+              router.push("/");
+            }}
+            icon={<HomeFilled />}
+          ></Button>
+          <Button
+            className="!bg-[#104b22] !text-white"
+            type="primary"
+            onClick={() => {
+              setLoading(true);
+              router.push("/dashboard/report");
+            }}
+          >
+            Báo cáo tổng hợp
+          </Button>
+        </div>
         <div className="flex flex-col">
           <Form.Item label="Ngày">
             <RangePicker
@@ -555,41 +571,82 @@ export default function EmployeeDashboard() {
               Chỉ tiêu tháng {month} năm {year}{" "}
             </Title>
             <div className="flex flex-col">
-              <Text strong>Tổng doanh thu: </Text>
-              <div className="mt-2 grid grid-cols-2">
-                <Text>Mục tiêu: {totalTargetDoanhThu} </Text>
-                <Text>Đạt được: {totalActualDoanhThu} </Text>
-              </div>
-              <div className="my-7 relative bg-[#bebebe] rounded-2xl h-3 w-full">
-                <div
-                  style={{
-                    width: `${
-                      Number(totalPercentDoanhThu) > 100
-                        ? "100"
-                        : totalPercentDoanhThu
-                    }%`,
-                  }}
-                  className=" absolute left-0 top-0 h-full bg-gradient-to-bl from-[#00c0ff] to-[#4218b8] rounded-2xl"
+              <Title level={3} className="text-center !mb-2">
+                Doanh Thu
+              </Title>
+              <Text strong>
+                Tổng doanh thu:{" "}
+                <p
+                  className={`${
+                    Number(totalActualDoanhThu) > Number(totalTargetDoanhThu)
+                      ? "text-green-700"
+                      : "text-red-700"
+                  } text-2xl inline`}
                 >
-                  <div className="w-full relative h-full">
-                    <Text className="font-bold absolute top-[-25px] right-[-20px] h-full">
-                      {Number(totalPercentDoanhThu) > 0
-                        ? totalPercentDoanhThu + "%"
-                        : ""}
-                    </Text>
-                  </div>
-                </div>
-
-                <Text className="font-bold absolute bottom-[-30px] right-0">
-                  {totalTargetDoanhThu}
-                </Text>
-                <Text className="font-bold absolute bottom-[-30px] left-0">
+                  {" "}
                   {totalActualDoanhThu}
-                </Text>
-              </div>
+                </p>
+              </Text>
+              <Text strong>
+                Tiến độ Doan thu:{" "}
+                <p
+                  className={`${
+                    Number(totalActualDoanhThu) > Number(totalTargetDoanhThu)
+                      ? "text-green-700"
+                      : "text-red-700"
+                  } text-2xl inline`}
+                >
+                  {totalPercentDoanhThu}%
+                </p>
+              </Text>
+              <Text strong>
+                Mục tiêu doanh thu:{" "}
+                <p className="text-2xl inline text-green-700">
+                  {" "}
+                  {totalTargetDoanhThu}
+                </p>
+              </Text>
+            </div>
+            <div className="flex flex-col mt-2">
+              <Title level={3} className="text-center !mb-2">
+                Lượt xe
+              </Title>
+              <Text strong>
+                Tổng lượt xe:{" "}
+                <p
+                  className={`${
+                    Number(totalActualLuotXe) > Number(totalTargetLuotXe)
+                      ? "text-green-700"
+                      : "text-red-700"
+                  } text-2xl inline`}
+                >
+                  {" "}
+                  {totalActualLuotXe} lượt
+                </p>
+              </Text>
+              <Text strong>
+                Tiến độ lượt xe:{" "}
+                <p
+                  className={`${
+                    Number(totalActualLuotXe) > Number(totalTargetLuotXe)
+                      ? "text-green-700"
+                      : "text-red-700"
+                  } text-2xl inline`}
+                >
+                  {" "}
+                  {totalPercentLuotXe}%
+                </p>
+              </Text>
+              <Text strong>
+                Mục tiêu lượt xe:{" "}
+                <p className="text-2xl inline text-green-700">
+                  {" "}
+                  {totalTargetLuotXe} lượt
+                </p>
+              </Text>
             </div>
 
-            <div className="flex flex-col mt-5">
+            {/* <div className="flex flex-col mt-5">
               <Text strong>Tổng lượt xe: </Text>
               <div className="mt-2 grid grid-cols-2">
                 <Text className="">Mục tiêu: {totalTargetLuotXe} </Text>
@@ -622,7 +679,7 @@ export default function EmployeeDashboard() {
                   {totalActualLuotXe} Lượt
                 </Text>
               </div>
-            </div>
+            </div> */}
           </>
         )}
       </div>
@@ -631,13 +688,13 @@ export default function EmployeeDashboard() {
 
         {!loading && (
           <div className="h-full grid grid-ro">
-            <Chart
+            <ClientChart
               options={chartDoanhThuOptions}
               series={chartDoanhThuSeries}
               type="bar"
               height={"50%"}
             />
-            <Chart
+            <ClientChart
               options={chartLuotXeOptions}
               series={chartLuotXeSeries}
               type="bar"

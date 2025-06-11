@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
-import { LockOutlined, LogoutOutlined } from "@ant-design/icons";
-import { Button } from "antd";
-import { useEffect, useState } from "react";
+import { LockOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Dropdown } from "antd";
+import { useEffect, useRef, useState } from "react";
 import ModalLoading from "./modalLoading";
 import { usePathname } from "next/navigation";
 import ModalChangePass, {
   interfaceChangePassword,
 } from "./modalChangePassEmployee";
 import Clock from "./timeNow";
+import { MenuProps } from "antd/lib";
+import Draggable from "react-draggable";
 
 export interface DataUser {
   id: string;
@@ -23,7 +25,7 @@ const Logout = () => {
   const [modalChangePass, setModalchangePass] = useState<boolean>(false);
   const [dataUser, setDataUser] = useState<DataUser>();
   const pathname = usePathname(); // ✅ an toàn với SSR
-
+  const nodeRef = useRef<HTMLDivElement>(null); // ✅ THÊM KIỂU DIV
   async function logout() {
     setLoading(true);
     try {
@@ -98,6 +100,21 @@ const Logout = () => {
     }
   }
 
+  const items: MenuProps["items"] = [
+    {
+      key: "1",
+      label: "Đổi mật khẩu",
+      icon: <LockOutlined />,
+      onClick: () => setModalchangePass(true),
+    },
+    {
+      key: "2",
+      label: "Đăng Xuất",
+      icon: <LogoutOutlined />,
+      onClick: logout,
+    },
+  ];
+
   useEffect(() => {
     getUser();
   }, [pathname]);
@@ -106,8 +123,19 @@ const Logout = () => {
   if (pathname === "/login") return null;
 
   return (
-    <div className="flex justify-between pt-4 z-50 px-5 gap-3 items-center bg-white shadow-header h-16 rounded-b-2xl">
-      <div>
+    <Draggable nodeRef={nodeRef as React.RefObject<HTMLElement>}>
+      <div
+        ref={nodeRef}
+        className=" absolute bottom-2 right-2 z-10 cursor-pointer shadow-2xl w-10 h-10 bg-[#999999] rounded-[50%]"
+      >
+        <Dropdown menu={{ items }}>
+          <div
+            className="flex items-center gap-3 justify-center w-full h-full"
+            onClick={(e) => e.preventDefault()}
+          >
+            <UserOutlined className="text-[#4a4a6a] font-bold text-3xl" />
+          </div>
+        </Dropdown>
         <ModalLoading isOpen={loading} />
         <ModalChangePass
           handleChangPass={changePassword}
@@ -116,32 +144,8 @@ const Logout = () => {
           }}
           open={modalChangePass}
         />
-        <Clock />
       </div>
-      <div className="flex items-center gap-4">
-        <p className="italic font-medium text-[#6e6e6e]">
-          Hi, {dataUser?.name}
-        </p>
-        <Button
-          type="dashed"
-          icon={<LockOutlined className="!font-medium" />}
-          className=""
-          loading={loading}
-          onClick={() => setModalchangePass(true)}
-        >
-          Đổi mật khẩu
-        </Button>
-        <Button
-          type="primary"
-          icon={<LogoutOutlined className="!font-medium" />}
-          className="!bg-red-600 !font-medium"
-          loading={loading}
-          onClick={logout}
-        >
-          Đăng xuất
-        </Button>
-      </div>
-    </div>
+    </Draggable>
   );
 };
 

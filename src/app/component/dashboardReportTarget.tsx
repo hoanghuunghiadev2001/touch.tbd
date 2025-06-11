@@ -1,4 +1,5 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 
 export interface Root {
@@ -26,12 +27,15 @@ export interface Summary {
   totalActualTrips: number;
   totalActualRevenue: number;
 }
-interface Props {
-  data: Daum[];
-}
 
-const DashboardReportTarget: React.FC<Props> = ({ data }) => {
-  const employeeNames = data.map((d) => d.employeeName);
+const DashboardReportTarget: React.FC = () => {
+  const [dataReportTarget, setDataReportTarget] = useState<Root>();
+  useEffect(() => {
+    axios.get<Root>("/api/targets?monthYear=2025-6").then((res) => {
+      setDataReportTarget(res.data);
+    });
+  }, []);
+  const employeeNames = dataReportTarget?.data.map((d) => d.employeeName);
 
   function formatCurrencyShort(value: number): string {
     if (value >= 1_000_000_000)
@@ -46,7 +50,16 @@ const DashboardReportTarget: React.FC<Props> = ({ data }) => {
   // Biểu đồ lượt xe
   const tripChartOptions = {
     chart: { type: "line" as const },
-    xaxis: { categories: employeeNames, tickAmount: 12 },
+
+    xaxis: {
+      categories: employeeNames,
+      labels: {
+        rotate: -45,
+        style: {
+          fontSize: "12px",
+        },
+      },
+    },
     title: { text: "Lượt xe: Chỉ tiêu vs Thực tế" },
     markers: {
       size: 5,
@@ -59,7 +72,7 @@ const DashboardReportTarget: React.FC<Props> = ({ data }) => {
       enabled: true,
       formatter: (val: number) => val,
       position: "top",
-      offsetY: -15,
+      offsetY: -6,
       style: { fontSize: "10px", colors: ["#000"], fontWeight: "bold" },
     },
     yaxis: { title: { text: "Lượt xe" } },
@@ -70,19 +83,27 @@ const DashboardReportTarget: React.FC<Props> = ({ data }) => {
   const tripChartSeries = [
     {
       name: "Chỉ tiêu",
-      data: data.map((d) => d.targetTrips),
+      data: dataReportTarget?.data.map((d) => d.targetTrips) ?? [],
     },
     {
       name: "Thực tế",
-      data: data.map((d) => d.actualTrips),
+      data: dataReportTarget?.data.map((d) => d.actualTrips) ?? [],
     },
   ];
 
   // Biểu đồ doanh thu
   const revenueChartOptions = {
     chart: { type: "line" as const },
-    xaxis: { categories: employeeNames, tickAmount: 12 },
-    title: { text: "Doanh thu: Chỉ tiêu vs Thực tế" },
+    xaxis: {
+      categories: employeeNames,
+      labels: {
+        rotate: -45,
+        style: {
+          fontSize: "12px",
+        },
+      },
+    },
+    title: { text: `Tổng Doanh Thu` },
     markers: {
       size: 5,
       colors: ["#008FFB"],
@@ -104,7 +125,7 @@ const DashboardReportTarget: React.FC<Props> = ({ data }) => {
       enabled: true,
       formatter: (val: number) => formatCurrencyShort(val),
       position: "top",
-      offsetY: -15,
+      offsetY: -6,
       style: { fontSize: "10px", colors: ["#000"], fontWeight: "bold" },
     },
     tooltip: {
@@ -118,31 +139,34 @@ const DashboardReportTarget: React.FC<Props> = ({ data }) => {
   const revenueChartSeries = [
     {
       name: "Chỉ tiêu",
-      data: data.map((d) => d.targetRevenue),
+      data: dataReportTarget?.data.map((d) => d.targetRevenue) ?? [],
     },
     {
       name: "Thực tế",
-      data: data.map((d) => d.actualRevenue),
+      data: dataReportTarget?.data.map((d) => d.actualRevenue) ?? [],
     },
   ];
 
   return (
-    <div className="h-[calc(100vh-90px)]">
-      <div className="h-[50%]">
-        <Chart
-          height={"100%"}
-          options={tripChartOptions}
-          series={tripChartSeries}
-          type="line"
-        />
-      </div>
-      <div className="h-[50%]">
-        <Chart
-          height={"100%"}
-          options={revenueChartOptions}
-          series={revenueChartSeries}
-          type="line"
-        />
+    <div className="h-[calc(100vh-90px)] flex p-4">
+      <div className="w-[250px] h-full shrink-0">ấdasd</div>
+      <div className="w-[calc(100vw-280px)] h-full">
+        <div className="h-[50%]">
+          <Chart
+            height={"100%"}
+            options={tripChartOptions}
+            series={tripChartSeries}
+            type="line"
+          />
+        </div>
+        <div className="h-[50%]">
+          <Chart
+            height={"100%"}
+            options={revenueChartOptions}
+            series={revenueChartSeries}
+            type="line"
+          />
+        </div>
       </div>
     </div>
   );
