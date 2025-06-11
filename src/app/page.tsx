@@ -706,6 +706,7 @@ export default function UploadTargetForm() {
           </Button>
 
           <Button
+            className="!bg-amber-600"
             type="primary"
             loading={loading}
             onClick={() => setModalManagerEmployees(true)}
@@ -714,6 +715,7 @@ export default function UploadTargetForm() {
           </Button>
 
           <Button
+            className="!bg-cyan-800"
             type="primary"
             loading={loading}
             onClick={() => setMopdalDeleteKPIDay(true)}
@@ -724,6 +726,7 @@ export default function UploadTargetForm() {
 
         <Space>
           <Button
+            className="!bg-purple-800"
             type="primary"
             loading={loading}
             onClick={() => setModalAddKPIMonth(true)}
@@ -731,6 +734,7 @@ export default function UploadTargetForm() {
             Thêm chỉ tiêu
           </Button>
           <Button
+            className="!bg-yellow-800"
             type="primary"
             loading={loading}
             onClick={() => setOpenModalValue(true)}
