@@ -725,7 +725,7 @@ export default function UploadTargetForm() {
           <Button type="primary" onClick={fetchData} loading={loading}>
             Tìm kiếm
           </Button>
-          {dataUser?.role !== "USER" && (
+          {dataUser?.role && dataUser?.role !== "USER" && (
             <Button
               className="!bg-amber-600"
               type="primary"
@@ -736,7 +736,7 @@ export default function UploadTargetForm() {
             </Button>
           )}
         </Space>
-        {dataUser?.role !== "USER" ? (
+        {dataUser?.role && dataUser?.role !== "USER" ? (
           <Space>
             <Button
               className="!bg-purple-800"
