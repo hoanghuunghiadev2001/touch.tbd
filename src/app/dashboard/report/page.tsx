@@ -348,6 +348,7 @@ export default function EmployeeDashboard() {
       show: true,
       width: chartType === "line" ? 2 : 0, // Ẩn viền cột khi bar
       colors: chartType === "line" ? ["#FF5733"] : ["transparent"],
+      curve: "smooth",
     },
     xaxis: { categories, tickAmount: 12 },
     yaxis: { title: { text: "Lượt xe" } },
@@ -406,6 +407,7 @@ export default function EmployeeDashboard() {
     },
     stroke: {
       show: true,
+      curve: "smooth",
       width: chartType === "line" ? 2 : 0, // Ẩn viền cột khi bar
       colors: chartType === "line" ? ["#FF5733"] : ["transparent"],
     },
