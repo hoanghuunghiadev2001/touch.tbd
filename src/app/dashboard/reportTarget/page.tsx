@@ -96,7 +96,7 @@ const DashboardReportTarget: React.FC = () => {
     },
     markers: {
       size: 5,
-      colors: ["#008FFB"],
+      colors: ["#FF5733", "#009E73"],
       strokeColors: "#fff",
       strokeWidth: 2,
       hover: { size: 7 },
@@ -152,7 +152,7 @@ const DashboardReportTarget: React.FC = () => {
     },
     markers: {
       size: 5,
-      colors: ["#008FFB"],
+      colors: ["#FF5733", "#56B4E9"],
       strokeColors: "#fff",
       strokeWidth: 2,
       hover: { size: 7 },

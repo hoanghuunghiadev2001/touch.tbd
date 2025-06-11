@@ -354,7 +354,7 @@ export default function EmployeeDashboard() {
     yaxis: { title: { text: "Lượt xe" } },
     markers: {
       size: 5,
-      colors: ["#008FFB"],
+      colors: ["#009E73"],
       strokeColors: "#fff",
       strokeWidth: 2,
       hover: { size: 7 },
@@ -384,7 +384,7 @@ export default function EmployeeDashboard() {
     },
     markers: {
       size: 5,
-      colors: ["#008FFB"],
+      colors: ["#56B4E9"],
       strokeColors: "#fff",
       strokeWidth: 2,
       hover: { size: 7 },
