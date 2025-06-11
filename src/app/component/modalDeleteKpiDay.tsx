@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -28,11 +29,20 @@ const DailyKPIDeleteModal: React.FC<DailyKPIDeleteModalProps> = ({
 
   useEffect(() => {
     if (open) {
+      setLoading(true);
       fetch(`/api/kpis/dailyKpi/dayInMonth?year=${year}&month=${month}`)
         .then((res) => res.json())
         .then((data) => {
           setDays(data);
           setSelectedDays([]);
+          setLoading(false);
+        })
+        .catch(() => {
+          messageApi.open({
+            type: "error",
+            content: `Lỗi server`,
+          });
+          setLoading(false);
         });
     }
   }, [open, year, month]);
