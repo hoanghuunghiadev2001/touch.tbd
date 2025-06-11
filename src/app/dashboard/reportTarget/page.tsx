@@ -121,11 +121,11 @@ const DashboardReportTarget: React.FC = () => {
 
   const tripChartSeries = [
     {
-      name: "Chỉ tiêu",
+      name: "Chỉ tiêu lượt xe",
       data: dataReportTarget?.data.map((d) => d.targetTrips) ?? [],
     },
     {
-      name: "Thực tế",
+      name: "Thực tế lượt xe",
       data: dataReportTarget?.data.map((d) => d.actualTrips) ?? [],
     },
   ];
@@ -190,11 +190,11 @@ const DashboardReportTarget: React.FC = () => {
 
   const revenueChartSeries = [
     {
-      name: "Chỉ tiêu",
+      name: "Chỉ tiêu doanh thu",
       data: dataReportTarget?.data.map((d) => d.targetRevenue) ?? [],
     },
     {
-      name: "Thực tế",
+      name: "Thực tế doanh thu",
       data: dataReportTarget?.data.map((d) => d.actualRevenue) ?? [],
     },
   ];
