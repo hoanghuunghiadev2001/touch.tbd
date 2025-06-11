@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Form, Modal, Select } from "antd";
+import { DatePicker, Form, Modal, Select } from "antd";
 import { EmployeeDetailKPI } from "../page";
 import { useRouter } from "next/navigation";
 
@@ -65,6 +65,7 @@ const ModalDetailEmployee = ({
   const [formValues, setFormValues] = useState<Partial<DailyKPI>>({});
   const [editTarget, setEditTarget] = useState(false);
   const [jobCodes, setJobCodes] = useState<string[]>([]);
+  const [filterDate, setFilterDate] = useState<dayjs.Dayjs | null>(null);
   const [editTripTarget, setEditTripTarget] = useState<number>(
     dataEmployeeDetail?.tripTarget ?? 0
   );
@@ -92,6 +93,16 @@ const ModalDetailEmployee = ({
 
   // Tính tổng số trang
   const totalPages = Math.ceil(dailyKPIs.length / PAGE_SIZE);
+
+  const disabledDate = (current: dayjs.Dayjs) => {
+    const start = dayjs(`${year}-${month}-01`);
+    const end = start.endOf("month");
+    return current < start || current > end;
+  };
+
+  const filteredKPIs = filterDate
+    ? dailyKPIs.filter((item) => dayjs(item.date).isSame(filterDate, "day"))
+    : dailyKPIs;
 
   const resetState = () => {
     setDailyKPIs(
@@ -421,6 +432,7 @@ const ModalDetailEmployee = ({
           KPI tháng {dataEmployeeDetail?.month}/{dataEmployeeDetail?.year} -{" "}
           {dataEmployeeDetail?.employeeName}
         </h2>
+
         <Button
           type="dashed"
           loading={loading}
@@ -438,6 +450,20 @@ const ModalDetailEmployee = ({
       </div>
 
       <div className="flex justify-between">
+        <div className="flex justify-end mb-4 items-center gap-2">
+          <span>Lọc theo ngày:</span>
+          <DatePicker
+            value={filterDate}
+            onChange={(date) => {
+              setFilterDate(date);
+              setCurrentPage(1);
+            }}
+            allowClear
+            placeholder="Chọn ngày"
+            format="DD/MM/YYYY"
+            disabledDate={disabledDate}
+          />
+        </div>
         <div className="mb-4 flex items-center gap-2">
           <strong>KPI: Lượt xe - </strong>{" "}
           {editTarget ? (
@@ -523,8 +549,8 @@ const ModalDetailEmployee = ({
         }}
         dataSource={
           (adding
-            ? [...dailyKPIs, { id: "new", ...newKPI }]
-            : dailyKPIs) as DailyKPI[]
+            ? [...filteredKPIs, { id: "new", ...newKPI }]
+            : filteredKPIs) as DailyKPI[]
         }
       />
     </Modal>
