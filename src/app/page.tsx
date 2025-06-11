@@ -713,15 +713,6 @@ export default function UploadTargetForm() {
           >
             Quản lý CVDV
           </Button>
-
-          <Button
-            className="!bg-cyan-800"
-            type="primary"
-            loading={loading}
-            onClick={() => setMopdalDeleteKPIDay(true)}
-          >
-            Quản lý Dữ liệu
-          </Button>
         </Space>
 
         <Space>
@@ -740,6 +731,14 @@ export default function UploadTargetForm() {
             onClick={() => setOpenModalValue(true)}
           >
             Cập nhật dữ liệu
+          </Button>
+          <Button
+            className="!bg-cyan-800"
+            type="primary"
+            loading={loading}
+            onClick={() => setMopdalDeleteKPIDay(true)}
+          >
+            Quản lý Dữ liệu
           </Button>
           <Button
             className="!bg-[#104b22] !text-white"
