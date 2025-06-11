@@ -139,7 +139,7 @@ export default function UploadTargetForm() {
   const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
     dayjs().startOf("month")
   );
-  const [modalDeleteKpiDay, setMopdalDeleteKPIDay] = useState(false);
+  const [modalDeleteKpiDay, setModalDeleteKPIDay] = useState(false);
   const [modalDetailEmployee, setModalDetaiEmployee] = useState(false);
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
     []
@@ -650,7 +650,7 @@ export default function UploadTargetForm() {
       />
       <DailyKPIDeleteModal
         open={modalDeleteKpiDay}
-        onClose={() => setMopdalDeleteKPIDay(false)}
+        onClose={() => setModalDeleteKPIDay(false)}
         year={year ?? 0}
         month={month}
         fetchData={fetchData}
@@ -736,7 +736,7 @@ export default function UploadTargetForm() {
             className="!bg-cyan-800"
             type="primary"
             loading={loading}
-            onClick={() => setMopdalDeleteKPIDay(true)}
+            onClick={() => setModalDeleteKPIDay(true)}
           >
             Quản lý Dữ liệu
           </Button>

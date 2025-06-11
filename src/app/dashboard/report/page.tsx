@@ -83,7 +83,8 @@ export interface Result {
   summary: Summary;
 }
 
-export interface Employee {
+// Đổi tên interface Employee thứ hai để tránh trùng lặp
+export interface EmployeeTarget {
   employeeId: string;
   employeeName: string;
   month: number;
@@ -253,8 +254,9 @@ export default function EmployeeDashboard() {
       setTotalTargetMonth(res.data.summary);
     } catch (error) {
       console.error("Failed to fetch data", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // Fetch dữ liệu từ API
@@ -279,20 +281,15 @@ export default function EmployeeDashboard() {
       const json = await res.json();
 
       if (json.success) {
-        setLoading(false);
         if (json.data) {
-          setLoading(false);
           try {
             const converted = convertEmployeeData(json);
             setDataEmployee(converted);
-            console.log(converted);
-
             setCategories(converted.map((e: { name: any }) => e.name));
-            setLoading(false);
           } catch (error) {
             console.error("Lỗi trong convertEmployeeData:", error);
             setError("Lỗi xử lý dữ liệu biểu đồ");
-            return; // dừng hàm fetchData nếu lỗi
+            return;
           }
         } else {
           return;
@@ -302,8 +299,9 @@ export default function EmployeeDashboard() {
       }
     } catch (error) {
       setError("Lỗi mạng hoặc server");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => {
@@ -691,13 +689,13 @@ export default function EmployeeDashboard() {
             <ClientChart
               options={chartDoanhThuOptions}
               series={chartDoanhThuSeries}
-              type="bar"
+              type={chartType}
               height={"50%"}
             />
             <ClientChart
               options={chartLuotXeOptions}
               series={chartLuotXeSeries}
-              type="bar"
+              type={chartType}
               height={"50%"}
             />
           </div>
