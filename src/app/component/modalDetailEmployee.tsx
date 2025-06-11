@@ -199,6 +199,12 @@ const ModalDetailEmployee = ({
 
   const columns: ColumnsType<DailyKPI> = [
     {
+      title: "STT",
+      key: "stt",
+      render: (text, record, index) => index + 1,
+      width: 60,
+    },
+    {
       title: "Ngày",
       dataIndex: "date",
       width: 130,
@@ -484,7 +490,7 @@ const ModalDetailEmployee = ({
           )}
         </div>
 
-        <div className="flex justify-end mb-2">
+        {/* <div className="flex justify-end mb-2">
           {!adding ? (
             <Button
               type="primary"
@@ -498,7 +504,7 @@ const ModalDetailEmployee = ({
               + Thêm dữ liệu
             </Button>
           ) : null}
-        </div>
+        </div> */}
       </div>
 
       <Table
