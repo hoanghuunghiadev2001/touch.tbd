@@ -344,7 +344,7 @@ export default function EmployeeDashboard() {
       formatter: (val: number) => val,
       position: "top",
       offsetY: -15,
-      style: { fontSize: "10px", colors: ["#000"], fontWeight: "bold" },
+      style: { fontSize: "12px", colors: ["#000"], fontWeight: "bold" },
     },
     stroke: {
       show: true,
@@ -404,7 +404,7 @@ export default function EmployeeDashboard() {
       formatter: (val: number) => formatCurrencyShort(val),
       position: "top",
       offsetY: -15,
-      style: { fontSize: "10px", colors: ["#000"], fontWeight: "bold" },
+      style: { fontSize: "12px", colors: ["#000"], fontWeight: "bold" },
     },
     stroke: {
       show: true,
