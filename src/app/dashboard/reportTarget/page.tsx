@@ -78,7 +78,7 @@ const DashboardReportTarget: React.FC = () => {
   // Biểu đồ lượt xe
   const tripChartOptions = {
     chart: { type: "line" as const },
-    colors: ["#FF5733", "#56B4E9"],
+    colors: ["#FF5733", "#009E73"],
 
     xaxis: {
       categories: employeeNames,
