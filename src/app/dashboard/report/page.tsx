@@ -347,7 +347,7 @@ export default function EmployeeDashboard() {
     stroke: {
       show: true,
       width: chartType === "line" ? 2 : 0, // Ẩn viền cột khi bar
-      colors: chartType === "line" ? ["#FF5733"] : ["transparent"],
+      colors: chartType === "line" ? ["#009E73"] : ["transparent"],
       curve: "smooth",
     },
     xaxis: { categories, tickAmount: 12 },
@@ -409,7 +409,7 @@ export default function EmployeeDashboard() {
       show: true,
       curve: "smooth",
       width: chartType === "line" ? 2 : 0, // Ẩn viền cột khi bar
-      colors: chartType === "line" ? ["#FF5733"] : ["transparent"],
+      colors: chartType === "line" ? ["#56B4E9"] : ["transparent"],
     },
     xaxis: { categories, tickAmount: 12 },
 

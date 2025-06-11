@@ -100,6 +100,12 @@ const DashboardReportTarget: React.FC = () => {
       strokeWidth: 2,
       hover: { size: 7 },
     },
+    stroke: {
+      show: true,
+      curve: "smooth",
+      width: 2, // Ẩn viền cột khi bar,
+      colors: ["#FF5733", "#009E73"],
+    },
     dataLabels: {
       enabled: true,
       formatter: (val: number) => val,
@@ -148,6 +154,12 @@ const DashboardReportTarget: React.FC = () => {
       strokeColors: "#fff",
       strokeWidth: 2,
       hover: { size: 7 },
+    },
+    stroke: {
+      show: true,
+      curve: "smooth",
+      width: 2, // Ẩn viền cột khi bar,
+      colors: ["#FF5733", "#56B4E9"],
     },
     yaxis: {
       title: { text: `Doanh thu` },
