@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import ModalImportTarget from "./component/modalImportTarget";
 import ModalAddKPIMonth from "./component/modalAddKPIMonth";
 import EmployeeManagerModal from "./component/modalEmployees";
+import DailyKPIDeleteModal from "./component/modalDeleteKpiDay";
 
 export interface Result {
   success: boolean;
@@ -138,6 +139,7 @@ export default function UploadTargetForm() {
   const [monthYearFilter, setMonthYearFilter] = useState<dayjs.Dayjs | null>(
     dayjs().startOf("month")
   );
+  const [modalDeleteKpiDay, setMopdalDeleteKPIDay] = useState(false);
   const [modalDetailEmployee, setModalDetaiEmployee] = useState(false);
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
     []
@@ -148,6 +150,13 @@ export default function UploadTargetForm() {
   const [dataEmployeeDetail, setDataEmployeeDetail] =
     useState<EmployeeDetailKPI>();
 
+  const year = monthYearFilter?.year();
+  const month = (monthYearFilter?.month() ?? 0) + 1;
+  useEffect(() => {
+    console.log(monthYearFilter);
+
+    console.log((monthYearFilter?.month() ?? 0) + 2);
+  }, [monthYearFilter]);
   useEffect(() => {
     setLoading(true);
 
@@ -578,6 +587,8 @@ export default function UploadTargetForm() {
         type: "success",
         content: `Import thành công cho`,
       });
+      fetchData();
+
       setOpenModalValue(false);
     } catch (err: any) {
       messageApi.open({
@@ -637,6 +648,14 @@ export default function UploadTargetForm() {
         setLoading={setLoading}
         handleSubmit={handleSubmit}
       />
+      <DailyKPIDeleteModal
+        open={modalDeleteKpiDay}
+        onClose={() => setMopdalDeleteKPIDay(false)}
+        year={year ?? 0}
+        month={month}
+        fetchData={fetchData}
+        messageApi={messageApi}
+      />
 
       <EmployeeManagerModal
         onClose={() => setModalManagerEmployees(false)}
@@ -681,6 +700,7 @@ export default function UploadTargetForm() {
             allowClear={false}
             style={{ width: 150 }}
           />
+
           <Button type="primary" onClick={fetchData} loading={loading}>
             Tìm kiếm
           </Button>
@@ -691,6 +711,14 @@ export default function UploadTargetForm() {
             onClick={() => setModalManagerEmployees(true)}
           >
             Quản lý CVDV
+          </Button>
+
+          <Button
+            type="primary"
+            loading={loading}
+            onClick={() => setMopdalDeleteKPIDay(true)}
+          >
+            Quản lý Dữ liệu
           </Button>
         </Space>
 

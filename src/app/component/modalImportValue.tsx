@@ -10,7 +10,6 @@ interface ModalImportValueProps {
   open: boolean;
   onClose: () => void;
   loading: boolean;
-
   handleSubmitImportValue: (file: File) => void;
 }
 const ModalImportValue = ({
