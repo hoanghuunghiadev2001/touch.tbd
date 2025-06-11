@@ -69,6 +69,20 @@ export default function ReportPage() {
       toolbar: { show: true },
       zoom: { enabled: false },
     },
+    colors: ["#FF5733", "#009E73"],
+    markers: {
+      size: 5,
+      colors: ["#FF5733", "#009E73"],
+      strokeColors: "#fff",
+      strokeWidth: 2,
+      hover: { size: 7 },
+    },
+    stroke: {
+      show: true,
+      curve: "smooth" as const,
+      width: 2, // Ẩn viền cột khi bar,
+      colors: ["#FF5733", "#009E73"],
+    },
     xaxis: {
       categories: targets.map((t) => `tháng ${t.month} `),
     },
@@ -107,6 +121,21 @@ export default function ReportPage() {
       zoom: { enabled: false },
     },
     colors: ["#FF4C4C", "#FF7A00"],
+
+    markers: {
+      size: 5,
+      colors: ["#FF4C4C", "#FF7A00"],
+
+      strokeColors: "#fff",
+      strokeWidth: 2,
+      hover: { size: 7 },
+    },
+    stroke: {
+      show: true,
+      curve: "smooth" as const,
+      width: 2, // Ẩn viền cột khi bar,
+      colors: ["#FF4C4C", "#FF7A00"],
+    },
     xaxis: {
       categories: targets.map((t) => `tháng ${t.month} `),
     },
