@@ -770,7 +770,7 @@ export default function UploadTargetForm() {
                 router.push(`/dashboard/reportTarget`);
               }}
             >
-              Báo cáo Tổng hợp
+              Báo cáo chỉ tiêu
             </Button>
             <Button
               className="!bg-[#f54e4e] !text-white"
@@ -780,7 +780,7 @@ export default function UploadTargetForm() {
                 router.push(`/dashboard/report`);
               }}
             >
-              Báo cáo chi tiết
+              Báo cáo tổng hợp
             </Button>
           </Space>
         ) : (

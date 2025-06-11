@@ -210,7 +210,7 @@ const DashboardReportTarget: React.FC = () => {
       <ModalLoading isOpen={loading} />
       <div className="w-[250px] h-full overflow-y-auto shrink-0 px-4 pb-4">
         <h2 className="text-2xl font-semibold text-center mb-2">
-          Báo cáo tổng hợp
+          Báo cáo chỉ tiêu
         </h2>
         <div className="gap-4 flex justify-between items-center mb-2">
           <Button
@@ -230,7 +230,7 @@ const DashboardReportTarget: React.FC = () => {
               router.push("/dashboard/report");
             }}
           >
-            Báo cáo chi tiết
+            Báo cáo tổng hợp
           </Button>
         </div>
         <DatePicker

@@ -465,7 +465,7 @@ export default function EmployeeDashboard() {
       <ModalLoading isOpen={loading} />
       <div className="w-[250px] h-full shrink-0">
         <h2 className="text-2xl font-semibold text-center mb-2">
-          Báo cáo chi tiết
+          Báo cáo tổng hợp
         </h2>
         <div className="gap-4 flex justify-between items-center mb-2">
           <Button
@@ -485,7 +485,7 @@ export default function EmployeeDashboard() {
               router.push("/dashboard/reportTarget");
             }}
           >
-            Báo cáo tổng hợp
+            Báo cáo chỉ tiêu
           </Button>
         </div>
         <div className="flex flex-col">
