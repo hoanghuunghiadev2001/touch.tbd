@@ -481,7 +481,7 @@ export default function EmployeeDashboard() {
             type="primary"
             onClick={() => {
               setLoading(true);
-              router.push("/dashboard/report");
+              router.push("/dashboard/reportTarget");
             }}
           >
             Báo cáo tổng hợp
