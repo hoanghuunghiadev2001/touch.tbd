@@ -570,7 +570,7 @@ export default function EmployeeDashboard() {
             <Title level={4} className="text-center">
               Chỉ tiêu tháng {month} năm {year}{" "}
             </Title>
-            <div className="flex flex-col">
+            <div className="flex flex-col pb-2">
               <Title level={3} className="text-center !mb-2">
                 Doanh Thu
               </Title>
@@ -607,7 +607,7 @@ export default function EmployeeDashboard() {
                 </p>
               </Text>
             </div>
-            <div className="flex flex-col mt-2">
+            <div className="flex flex-col mt-2 border-t border-[#999999]">
               <Title level={3} className="text-center !mb-2">
                 Lượt xe
               </Title>
