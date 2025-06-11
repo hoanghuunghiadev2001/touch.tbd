@@ -247,7 +247,7 @@ const DashboardReportTarget: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report">
-            <p className="m-0 text-lg">Tiến độ lượt xe</p>
+            <p className="m-0 text-lg">Tiến độ Doanh thu </p>
             <p
               className={`m-0 text-xl font-bold ${
                 Number(dataReportTarget?.summary.totalTargetRevenue) >
@@ -263,7 +263,7 @@ const DashboardReportTarget: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl shadow-card-report ">
-            <p className="m-0 text-lg">Chỉ tiêu lượt xe tháng</p>
+            <p className="m-0 text-lg">Chỉ tiêu doanh thu tháng</p>
             <p className="m-0 text-xl font-bold text-green-700">
               {formatCurrencyVND(
                 Number(dataReportTarget?.summary.totalTargetRevenue)
