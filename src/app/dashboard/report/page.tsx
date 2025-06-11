@@ -327,7 +327,7 @@ export default function EmployeeDashboard() {
   // Config biểu đồ lượt xe
   const chartLuotXeOptions = {
     chart: { type: chartType as any, height: 350 },
-    colors: ["#f5a971"],
+    colors: ["#009E73"],
     plotOptions: {
       bar: {
         horizontal: false,
@@ -373,6 +373,7 @@ export default function EmployeeDashboard() {
   // Config biểu đồ doanh thu
   const chartDoanhThuOptions = {
     chart: { type: chartType as any, height: 350 },
+    colors: ["#56B4E9"],
     plotOptions: {
       bar: {
         horizontal: false,
