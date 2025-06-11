@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { isUser } from "@/app/lib/auth";
+import { getEmployeeUser } from "@/app/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, context: any) {
   const paramsAwait = await context.params;
   const { employeeId } = paramsAwait;
   const monthYear = req.nextUrl.searchParams.get("monthYear");
-  if (!isUser(req)) {
+  if (!getEmployeeUser(req).isEmployee) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

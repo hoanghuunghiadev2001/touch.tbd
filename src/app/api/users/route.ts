@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getUserFromRequest, isAdmin, isUser } from "@/app/lib/auth";
+import { getEmployeeUser, getUserFromRequest, isAdmin } from "@/app/lib/auth";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET (optional): Lấy 1 user theo ID (cho UI)
 export async function GET(req: NextRequest) {
   const getUser = await getUserFromRequest(req);
-  if (!isUser(req)) {
+  if (!getEmployeeUser(req).isEmployee) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

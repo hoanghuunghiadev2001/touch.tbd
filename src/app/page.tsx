@@ -29,6 +29,7 @@ import ModalImportTarget from "./component/modalImportTarget";
 import ModalAddKPIMonth from "./component/modalAddKPIMonth";
 import EmployeeManagerModal from "./component/modalEmployees";
 import DailyKPIDeleteModal from "./component/modalDeleteKpiDay";
+import { DataUser } from "./component/logout";
 
 export interface Result {
   success: boolean;
@@ -144,6 +145,7 @@ export default function UploadTargetForm() {
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
     []
   );
+  const [dataUser, setDataUser] = useState<DataUser>();
   const [modalManagerEmployees, setModalManagerEmployees] =
     useState<boolean>(false);
 
@@ -157,37 +159,7 @@ export default function UploadTargetForm() {
 
     console.log((monthYearFilter?.month() ?? 0) + 2);
   }, [monthYearFilter]);
-  useEffect(() => {
-    setLoading(true);
 
-    async function fetchMetadata() {
-      try {
-        const res = await fetch("/api/infoEmployee");
-        const data = await res.json();
-
-        if (data.success) {
-          setEmployees(data.employees);
-          setLoading(false);
-        } else {
-          setLoading(false);
-          messageApi.open({
-            type: "error",
-            content: "Lỗi fetch API:" + data.message,
-          });
-          console.error("Lỗi fetch API:", data.message);
-        }
-      } catch (error) {
-        setLoading(false);
-        messageApi.open({
-          type: "error",
-          content: "Fetch error:" + error,
-        });
-        console.error("Fetch error:", error);
-      }
-    }
-
-    fetchMetadata();
-  }, []);
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     setFile(file);
     return false; // Ngăn auto upload của Antd
@@ -428,9 +400,63 @@ export default function UploadTargetForm() {
       }
   };
 
+  async function getUser() {
+    try {
+      const req = await fetch("/api/users/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await req.json();
+
+      if (!req.ok) {
+        throw new Error(data.error || "lỗi khi lấy user");
+      }
+      setDataUser(data);
+      if (data.role !== "USER") {
+        fetchMetadata();
+      }
+      return data;
+    } catch (error) {
+      console.error("lỗi khi lấy user:", error);
+      throw error;
+    }
+  }
+
   useEffect(() => {
     fetchData();
+    getUser();
   }, []);
+
+  async function fetchMetadata() {
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/infoEmployee");
+      const data = await res.json();
+
+      if (data.success) {
+        setEmployees(data.employees);
+        setLoading(false);
+      } else {
+        setLoading(false);
+        messageApi.open({
+          type: "error",
+          content: "Lỗi fetch API:" + data.message,
+        });
+        console.error("Lỗi fetch API:", data.message);
+      }
+    } catch (error) {
+      setLoading(false);
+      messageApi.open({
+        type: "error",
+        content: "Fetch error:" + error,
+      });
+      console.error("Fetch error:", error);
+    }
+  }
 
   function parseVNDStringToNumber(vnd: string): number {
     return Number(vnd.replace(/\./g, ""));
@@ -600,12 +626,6 @@ export default function UploadTargetForm() {
     }
   };
 
-  useEffect(() => {
-    if (!openModalValue) {
-      setLoading(false);
-    }
-  }, [openModalValue]);
-
   return (
     <div className="pt-2 pb-5 px-5 ">
       {contextHolder}
@@ -628,6 +648,7 @@ export default function UploadTargetForm() {
         dataEmployeeDetail={dataEmployeeDetail}
         deleteDailyKPI={deleteDailyKPI}
         updateTarget={updateTarget}
+        dataUser={dataUser}
       />
       <ModalImportValue
         loading={loading}
@@ -704,63 +725,67 @@ export default function UploadTargetForm() {
           <Button type="primary" onClick={fetchData} loading={loading}>
             Tìm kiếm
           </Button>
-
-          <Button
-            className="!bg-amber-600"
-            type="primary"
-            loading={loading}
-            onClick={() => setModalManagerEmployees(true)}
-          >
-            Quản lý CVDV
-          </Button>
+          {dataUser?.role !== "USER" && (
+            <Button
+              className="!bg-amber-600"
+              type="primary"
+              loading={loading}
+              onClick={() => setModalManagerEmployees(true)}
+            >
+              Quản lý CVDV
+            </Button>
+          )}
         </Space>
-
-        <Space>
-          <Button
-            className="!bg-purple-800"
-            type="primary"
-            loading={loading}
-            onClick={() => setModalAddKPIMonth(true)}
-          >
-            Thêm chỉ tiêu
-          </Button>
-          <Button
-            className="!bg-yellow-800"
-            type="primary"
-            loading={loading}
-            onClick={() => setOpenModalValue(true)}
-          >
-            Cập nhật dữ liệu
-          </Button>
-          <Button
-            className="!bg-cyan-800"
-            type="primary"
-            loading={loading}
-            onClick={() => setModalDeleteKPIDay(true)}
-          >
-            Quản lý Dữ liệu
-          </Button>
-          <Button
-            className="!bg-[#104b22] !text-white"
-            loading={loading}
-            onClick={() => {
-              setLoading(true);
-              router.push(`/dashboard/reportTarget`);
-            }}
-          >
-            Báo cáo Tổng hợp
-          </Button>
-          <Button
-            className="!bg-[#f54e4e] !text-white"
-            loading={loading}
-            onClick={() => {
-              setLoading(true);
-              router.push(`/dashboard/report`);
-            }}
-          >
-            Báo cáo chi tiết
-          </Button>
-        </Space>
+        {dataUser?.role !== "USER" ? (
+          <Space>
+            <Button
+              className="!bg-purple-800"
+              type="primary"
+              loading={loading}
+              onClick={() => setModalAddKPIMonth(true)}
+            >
+              Thêm chỉ tiêu
+            </Button>
+            <Button
+              className="!bg-yellow-800"
+              type="primary"
+              loading={loading}
+              onClick={() => setOpenModalValue(true)}
+            >
+              Cập nhật dữ liệu
+            </Button>
+            <Button
+              className="!bg-cyan-800"
+              type="primary"
+              loading={loading}
+              onClick={() => setModalDeleteKPIDay(true)}
+            >
+              Quản lý Dữ liệu
+            </Button>
+            <Button
+              className="!bg-[#104b22] !text-white"
+              loading={loading}
+              onClick={() => {
+                setLoading(true);
+                router.push(`/dashboard/reportTarget`);
+              }}
+            >
+              Báo cáo Tổng hợp
+            </Button>
+            <Button
+              className="!bg-[#f54e4e] !text-white"
+              loading={loading}
+              onClick={() => {
+                setLoading(true);
+                router.push(`/dashboard/report`);
+              }}
+            >
+              Báo cáo chi tiết
+            </Button>
+          </Space>
+        ) : (
+          ""
+        )}
       </div>
 
       <Table<DataType>

@@ -6,6 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 interface AuthPayload extends JwtPayload {
   id: string;
   role: string;
+  name: string; // 👈 thêm dòng này
 }
 
 function getTokenFromRequest(req: NextRequest): string | null {
@@ -32,4 +33,20 @@ export function isAdmin(req: NextRequest): boolean {
 export function isUser(req: NextRequest): boolean {
   const user = getUserFromRequest(req);
   return user?.role === "MANAGER" || user?.role === "ADMIN";
+}
+
+export function getEmployeeUser(req: NextRequest): {
+  isEmployee: boolean;
+  role?: string;
+  name?: string;
+} {
+  const user = getUserFromRequest(req);
+  const isEmployee =
+    user?.role === "MANAGER" || user?.role === "ADMIN" || user?.role === "USER";
+
+  return {
+    isEmployee,
+    role: user?.role,
+    name: user?.name,
+  };
 }

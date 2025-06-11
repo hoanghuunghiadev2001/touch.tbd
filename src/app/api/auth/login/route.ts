@@ -23,9 +23,13 @@ export async function POST(req: NextRequest) {
       { status: 401 }
     );
 
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
-    expiresIn: "1d",
-  });
+  const token = jwt.sign(
+    { id: user.id, role: user.role, name: user.name },
+    JWT_SECRET,
+    {
+      expiresIn: "1d",
+    }
+  );
 
   const { password: _password, ...userWithoutPassword } = user;
 

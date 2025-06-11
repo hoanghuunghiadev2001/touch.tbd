@@ -305,7 +305,7 @@ export default function ManagerPage() {
         okText="Lưu"
         cancelText="Hủy"
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" initialValues={{ role: "USER" }}>
           <Form.Item
             name="name"
             label="Tên"
@@ -319,6 +319,7 @@ export default function ManagerPage() {
             rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
           >
             <Select>
+              <Select.Option value="ADMIN">USER</Select.Option>
               <Select.Option value="MANAGER">MANAGER</Select.Option>
               <Select.Option value="ADMIN">ADMIN</Select.Option>
             </Select>

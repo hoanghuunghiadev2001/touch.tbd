@@ -18,6 +18,7 @@ import {
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import Link from "next/link";
+import { DataUser } from "./logout";
 
 type DailyKPI = {
   id: string;
@@ -45,6 +46,7 @@ interface ModalDetailEmployeeProps {
     editTripTarget: number,
     setEditTarget: any
   ) => void;
+  dataUser?: DataUser;
 }
 
 const ModalDetailEmployee = ({
@@ -54,6 +56,7 @@ const ModalDetailEmployee = ({
   editDailyKPI,
   deleteDailyKPI,
   updateTarget,
+  dataUser,
 }: ModalDetailEmployeeProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -124,6 +127,7 @@ const ModalDetailEmployee = ({
   }, [dataEmployeeDetail]);
 
   useEffect(() => {
+    if (!open) return;
     async function fetchMetadata() {
       try {
         const res = await fetch("/api/infoEmployee");
@@ -140,7 +144,7 @@ const ModalDetailEmployee = ({
     }
 
     fetchMetadata();
-  }, []);
+  }, [open]);
 
   const edit = (record: DailyKPI) => {
     setEditingKey(record.id);
@@ -459,7 +463,7 @@ const ModalDetailEmployee = ({
           ) : (
             0
           )}
-          {editTarget ? (
+          {editTarget && dataUser?.role !== "USER" ? (
             <div className="flex gap-2 ">
               <Button
                 type="link"
@@ -478,7 +482,7 @@ const ModalDetailEmployee = ({
                 Hủy
               </Button>
             </div>
-          ) : (
+          ) : dataUser?.role !== "USER" ? (
             <Button
               type="link"
               onClick={() => {
@@ -487,7 +491,7 @@ const ModalDetailEmployee = ({
             >
               Sửa
             </Button>
-          )}
+          ) : null}
         </div>
 
         {/* <div className="flex justify-end mb-2">

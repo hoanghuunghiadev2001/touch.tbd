@@ -1,17 +1,53 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { isUser } from "@/app/lib/auth";
+import { getEmployeeUser } from "@/app/lib/auth";
 
 export async function GET(request: NextRequest) {
-  if (!isUser(request)) {
+  if (!getEmployeeUser(request).isEmployee) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
+
   try {
     const { searchParams } = new URL(request.url);
 
-    const monthYearParam = searchParams.get("monthYear"); // VD: "2025-06" hoặc "06-2025"
-    const employeeIdParam = searchParams.get("employeeId"); // filter theo employeeId (UUID)
+    const monthYearParam = searchParams.get("monthYear");
+    // VD: "2025-06" hoặc "06-2025"
+
+    let employeeIdFilter: string | null = null;
+
+    if (getEmployeeUser(request).role === "USER") {
+      if (!getEmployeeUser(request).name) {
+        return NextResponse.json(
+          { error: "Không tìm thấy nhân viên tương ứng với người dùng." },
+          { status: 404 }
+        );
+      }
+      const employee = await prisma.employee.findFirst({
+        where: { name: getEmployeeUser(request).name },
+      });
+
+      if (!employee) {
+        return NextResponse.json(
+          { error: "Không tìm thấy nhân viên tương ứng với người dùng." },
+          { status: 404 }
+        );
+      }
+
+      employeeIdFilter = employee.id;
+    } else {
+      // Nếu không phải USER thì dùng query param (nếu có)
+      const employeeIdParam = searchParams.get("employeeId");
+      employeeIdFilter = employeeIdParam ?? "";
+    }
+    console.log("name:" + getEmployeeUser(request).name);
+    console.log("role:" + getEmployeeUser(request).role);
+    console.log("id:" + employeeIdFilter);
+
+    const employeeIdParam =
+      getEmployeeUser(request).role === "USER"
+        ? employeeIdFilter
+        : searchParams.get("employeeId"); // filter theo employeeId (UUID)
 
     let month: number;
     let year: number;
