@@ -112,7 +112,7 @@ const DashboardReportTarget: React.FC = () => {
       formatter: (val: number) => val,
       position: "top",
       offsetY: -6,
-      style: { fontSize: "10px", colors: ["#000"], fontWeight: "bold" },
+      style: { fontSize: "12px", colors: ["#000"], fontWeight: "bold" },
     },
     yaxis: { title: { text: "Lượt xe" } },
 
@@ -178,7 +178,7 @@ const DashboardReportTarget: React.FC = () => {
       formatter: (val: number) => formatCurrencyShort(val),
       position: "top",
       offsetY: -6,
-      style: { fontSize: "10px", colors: ["#000"], fontWeight: "bold" },
+      style: { fontSize: "12px", colors: ["#000"], fontWeight: "bold" },
     },
     tooltip: {
       y: {
