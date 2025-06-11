@@ -126,14 +126,14 @@ const Logout = () => {
     <Draggable nodeRef={nodeRef as React.RefObject<HTMLElement>}>
       <div
         ref={nodeRef}
-        className=" absolute bottom-2 right-2 z-10 cursor-pointer shadow-2xl w-10 h-10 bg-[#999999] rounded-[50%]"
+        className=" absolute bottom-2 right-2 z-10 cursor-pointer shadow-2xl w-10 h-10 bg-[#D55E00] rounded-[50%]"
       >
         <Dropdown menu={{ items }}>
           <div
             className="flex items-center gap-3 justify-center w-full h-full"
             onClick={(e) => e.preventDefault()}
           >
-            <UserOutlined className="text-[#4a4a6a] font-bold text-3xl" />
+            <UserOutlined className="!text-[white] font-bold text-3xl" />
           </div>
         </Dropdown>
         <ModalLoading isOpen={loading} />
