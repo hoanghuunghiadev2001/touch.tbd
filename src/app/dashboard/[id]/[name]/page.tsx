@@ -212,7 +212,7 @@ export default function ReportPage() {
   return (
     <div>
       <ModalLoading isOpen={loading} />
-      <div className="flex h-[calc(100vh-65px)] ">
+      <div className="flex h-[calc(100vh)] ">
         <div className="p-4 h-full shadow-2xl shadow-[#4a4a6a] rounded-br-xl rounded-tr-xl">
           <div className="w-[200px]">
             <Button
