@@ -448,7 +448,7 @@ export default function EmployeeDashboard() {
   return (
     <div className="flex w-full h-[calc(100vh)]">
       <ModalLoading isOpen={loading} />
-      <div className="w-[350px] h-full shrink-0 shadow-2xl p-4">
+      <div className="w-[350px] h-full shrink-0 shadow-2xl p-4 rounded-r-2xl">
         <h2 className="text-2xl font-semibold text-center mb-2">
           Báo cáo tổng hợp
         </h2>
