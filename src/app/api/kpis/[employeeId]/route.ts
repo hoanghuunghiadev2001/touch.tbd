@@ -21,7 +21,10 @@ export async function GET(req: NextRequest, context: any) {
   const { employeeId } = paramsAwait;
   const monthYear = req.nextUrl.searchParams.get("monthYear");
   if (!getEmployeeUser(req).isEmployee) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
 
   if (!employeeId) {

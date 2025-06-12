@@ -13,6 +13,7 @@ import {
   Select,
   Form,
   Button,
+  Checkbox,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import dynamic from "next/dynamic";
@@ -26,6 +27,7 @@ import ModalLoading from "@/app/component/modalLoading";
 import { useRouter } from "next/navigation";
 import { HomeFilled } from "@ant-design/icons";
 import ClientChart from "@/app/component/ClientChart";
+import { CheckboxChangeEvent } from "antd/lib";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -121,6 +123,18 @@ export default function EmployeeDashboard() {
 
   const month = dateRange[0].month() + 1; // month() trả về 0-11, nên +1
   const year = dateRange[0].year();
+  const [selected, setSelected] = useState(null);
+
+  const handleChange = (e: CheckboxChangeEvent) => {
+    const val = e.target.value;
+
+    // Nếu click vào mục đã chọn -> bỏ chọn (set về null)
+    setSelected((prev) => (prev === val ? null : val));
+
+    setIndustryCode(undefined);
+    setEmployeeId((prev) => (prev === val ? null : val));
+    console.log((prev: any) => (prev === val ? null : val));
+  };
 
   // State tìm kiếm theo tên nhân viên
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
@@ -213,6 +227,18 @@ export default function EmployeeDashboard() {
     if (value >= 1_000)
       return `${(value / 1_000).toFixed(2).replace(/\.00$/, "")}k`;
     return value.toString();
+  }
+  function formatVND(amount: number | string): string {
+    const number = typeof amount === "string" ? parseFloat(amount) : amount;
+
+    if (isNaN(number)) return "0 ₫";
+
+    return number.toLocaleString("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
   }
 
   // Chuyển đổi dữ liệu API sang dạng biểu đồ, lọc theo khoảng từ ngày đến ngày
@@ -430,7 +456,7 @@ export default function EmployeeDashboard() {
     },
   ];
 
-  const totalActualDoanhThu = formatCurrencyShort(
+  const totalActualDoanhThu = formatVND(
     Number(totalTargetMonth?.totalActualRevenue ?? 0)
   );
   const totalTargetDoanhThu = formatCurrencyShort(
@@ -507,25 +533,18 @@ export default function EmployeeDashboard() {
               className="col-span-2"
               layout="vertical"
             >
-              <Select
-                showSearch
-                placeholder="Tên nhân viên"
-                value={employeeId}
-                onChange={(e) => {
-                  setIndustryCode(undefined);
-                  setEmployeeId(e);
-                }}
-                allowClear
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
-                options={employees.map((code) => ({
-                  value: code.id,
-                  label: code.name,
-                }))}
-              />
+              <div className="p-2 h-52 overflow-y-auto">
+                {employees.map((item) => (
+                  <Checkbox
+                    key={item.id}
+                    value={item.id}
+                    checked={selected === item.id}
+                    onChange={handleChange}
+                  >
+                    {item.name}
+                  </Checkbox>
+                ))}
+              </div>
             </Form.Item>
             <Form.Item label="Ngành:" layout="vertical">
               <Select
@@ -569,42 +588,19 @@ export default function EmployeeDashboard() {
           <>
             {/* Tổng quan Doanh Thu */}
             <Title level={4} className="text-center">
-              Chỉ tiêu tháng {month} năm {year}{" "}
+              Chỉ tiêu tháng{" "}
+              <p className="inline text-red-500">
+                {month} năm {year}
+              </p>{" "}
             </Title>
             <div className="flex flex-col pb-2">
               <Title level={3} className="text-center !mb-2">
                 Doanh Thu
               </Title>
-              <Text strong>
-                Tổng doanh thu:{" "}
-                <p
-                  className={`${
-                    Number(totalActualDoanhThu) > Number(totalTargetDoanhThu)
-                      ? "text-green-700"
-                      : "text-red-700"
-                  } text-2xl inline`}
-                >
+              <Text strong className="text-center">
+                <p className={`text-green-700 text-2xl inline text-center`}>
                   {" "}
                   {totalActualDoanhThu}
-                </p>
-              </Text>
-              <Text strong>
-                Tiến độ Doan thu:{" "}
-                <p
-                  className={`${
-                    Number(totalActualDoanhThu) > Number(totalTargetDoanhThu)
-                      ? "text-green-700"
-                      : "text-red-700"
-                  } text-2xl inline`}
-                >
-                  {totalPercentDoanhThu}%
-                </p>
-              </Text>
-              <Text strong>
-                Mục tiêu doanh thu:{" "}
-                <p className="text-2xl inline text-green-700">
-                  {" "}
-                  {totalTargetDoanhThu}
                 </p>
               </Text>
             </div>
@@ -612,37 +608,9 @@ export default function EmployeeDashboard() {
               <Title level={3} className="text-center !mb-2">
                 Lượt xe
               </Title>
-              <Text strong>
-                Tổng lượt xe:{" "}
-                <p
-                  className={`${
-                    Number(totalActualLuotXe) > Number(totalTargetLuotXe)
-                      ? "text-green-700"
-                      : "text-red-700"
-                  } text-2xl inline`}
-                >
-                  {" "}
-                  {totalActualLuotXe} lượt
-                </p>
-              </Text>
-              <Text strong>
-                Tiến độ lượt xe:{" "}
-                <p
-                  className={`${
-                    Number(totalActualLuotXe) > Number(totalTargetLuotXe)
-                      ? "text-green-700"
-                      : "text-red-700"
-                  } text-2xl inline`}
-                >
-                  {" "}
-                  {totalPercentLuotXe}%
-                </p>
-              </Text>
-              <Text strong>
-                Mục tiêu lượt xe:{" "}
-                <p className="text-2xl inline text-green-700">
-                  {" "}
-                  {totalTargetLuotXe} lượt
+              <Text strong className="text-center">
+                <p className={`text-green-700  text-2xl inline`}>
+                  {totalActualLuotXe}
                 </p>
               </Text>
             </div>

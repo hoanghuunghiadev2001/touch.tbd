@@ -11,7 +11,7 @@ type DailyKPIDeleteModalProps = {
   onClose: () => void;
   year: number;
   month: number;
-  fetchData: () => void;
+  handleDelete: (days: string[]) => void;
   messageApi: MessageInstance;
 };
 
@@ -20,7 +20,7 @@ const DailyKPIDeleteModal: React.FC<DailyKPIDeleteModalProps> = ({
   onClose,
   year,
   month,
-  fetchData,
+  handleDelete,
   messageApi,
 }) => {
   const [days, setDays] = useState<string[]>([]);
@@ -47,38 +47,12 @@ const DailyKPIDeleteModal: React.FC<DailyKPIDeleteModalProps> = ({
     }
   }, [open, year, month]);
 
-  const handleDelete = async () => {
-    setLoading(true);
-    const res = await fetch("/api/kpis/dailyKpi/deleteByDay", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ days: selectedDays }),
-    });
-
-    const result = await res.json();
-    setLoading(false);
-
-    if (res.ok) {
-      messageApi.open({
-        type: "success",
-        content: `Đã xoá ${result.deletedCount} dòng KPI`,
-      });
-      fetchData();
-      onClose();
-    } else {
-      messageApi.open({
-        type: "success",
-        content: result.error || "Lỗi khi xoá",
-      });
-    }
-  };
-
   return (
     <Modal
       title={`Xoá dữ liệu DailyKPI tháng ${month}/${year}`}
       open={open}
       onCancel={onClose}
-      onOk={handleDelete}
+      onOk={() => handleDelete(selectedDays)}
       okButtonProps={{ disabled: selectedDays.length === 0, loading }}
       okText="Xoá đã chọn"
     >

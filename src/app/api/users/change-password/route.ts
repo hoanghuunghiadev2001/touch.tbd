@@ -9,7 +9,10 @@ export async function PUT(req: NextRequest) {
   const user = await getUserFromRequest(req);
 
   if (!isUser(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
 
   const { currentPassword, newPassword } = await req.json();
@@ -34,7 +37,10 @@ export async function PUT(req: NextRequest) {
 
   const authUser = await getUserFromRequest(req);
   if (!authUser || (authUser.id !== user?.id && authUser.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
 
   try {

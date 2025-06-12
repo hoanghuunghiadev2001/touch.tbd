@@ -60,7 +60,7 @@ function generateRandomPassword(length = 12): string {
 
 export async function POST(req: NextRequest) {
   // if (!isAdmin(req)) {
-  //   return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  //   return NextResponse.json({ error: "Bạn không có quyền truy cập" }, { status: 403 });
   // }
 
   const { email, name, role } = await req.json();

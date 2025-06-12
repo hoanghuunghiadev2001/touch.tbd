@@ -6,7 +6,10 @@ import { getEmployeeUser } from "@/app/lib/auth";
 
 export async function GET(req: NextRequest) {
   if (!getEmployeeUser(req).isEmployee) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
   try {
     // Lấy danh sách nhân viên (id + tên)

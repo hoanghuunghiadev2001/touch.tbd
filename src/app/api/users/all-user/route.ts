@@ -6,7 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   if (!isAdmin(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
 
   try {

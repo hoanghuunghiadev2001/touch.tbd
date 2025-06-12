@@ -611,7 +611,7 @@ export default function UploadTargetForm() {
       setLoading(false);
       messageApi.open({
         type: "success",
-        content: `Import thành công cho`,
+        content: `Import thành công cho ${data.count} dòng`,
       });
       fetchData();
 
@@ -624,6 +624,35 @@ export default function UploadTargetForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (selectedDays: string[]) => {
+    setLoading(true);
+    const res = await fetch("/api/kpis/dailyKpi/deleteByDay", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ days: selectedDays }),
+    });
+
+    const result = await res.json();
+    setLoading(false);
+
+    if (res.ok) {
+      fetchData();
+
+      messageApi.open({
+        type: "success",
+        content: `Đã xoá ${result.deletedCount} dòng KPI`,
+      });
+    } else {
+      setLoading(false);
+
+      messageApi.open({
+        type: "success",
+        content: result.error || "Lỗi khi xoá",
+      });
+    }
+    setLoading(false);
   };
 
   return (
@@ -674,8 +703,8 @@ export default function UploadTargetForm() {
         onClose={() => setModalDeleteKPIDay(false)}
         year={year ?? 0}
         month={month}
-        fetchData={fetchData}
         messageApi={messageApi}
+        handleDelete={handleDelete}
       />
 
       <EmployeeManagerModal

@@ -120,6 +120,7 @@ const ModalDetailEmployee = ({
     });
     setEditingKey(null);
     setAdding(false);
+    setFilterDate(null);
     setFormValues({});
     setEditTarget(false);
     setEditTripTarget(dataEmployeeDetail?.tripTarget ?? 0);

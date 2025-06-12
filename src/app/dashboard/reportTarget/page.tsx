@@ -246,15 +246,8 @@ const DashboardReportTarget: React.FC = () => {
         />
         <div className="grid grid-rows-1 gap-2 mt-2">
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report">
-            <p className="m-0 text-lg">Doanh thu đạt được</p>
-            <p
-              className={`m-0 text-xl font-bold ${
-                Number(dataReportTarget?.summary.totalTargetRevenue) >
-                Number(dataReportTarget?.summary.totalActualRevenue)
-                  ? "text-red-700"
-                  : "text-green-700"
-              }`}
-            >
+            <p className="m-0 text-lg">Doanh thu đã đạt</p>
+            <p className={`m-0 text-xl font-bold text-green-700 `}>
               {formatCurrencyVND(
                 Number(dataReportTarget?.summary.totalActualRevenue)
               )}
@@ -262,14 +255,7 @@ const DashboardReportTarget: React.FC = () => {
           </div>
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report">
             <p className="m-0 text-lg">Tiến độ Doanh thu </p>
-            <p
-              className={`m-0 text-xl font-bold ${
-                Number(dataReportTarget?.summary.totalTargetRevenue) >
-                Number(dataReportTarget?.summary.totalActualRevenue)
-                  ? "text-red-700"
-                  : "text-green-700"
-              }`}
-            >
+            <p className={`m-0 text-xl font-bold text-green-700`}>
               {calculatePercentage(
                 Number(dataReportTarget?.summary.totalActualRevenue) ?? 0,
                 Number(dataReportTarget?.summary.totalTargetRevenue) ?? 0
@@ -278,7 +264,7 @@ const DashboardReportTarget: React.FC = () => {
           </div>
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl shadow-card-report ">
             <p className="m-0 text-lg">Chỉ tiêu doanh thu tháng</p>
-            <p className="m-0 text-xl font-bold text-green-700">
+            <p className="m-0 text-xl font-bold text-red-700">
               {formatCurrencyVND(
                 Number(dataReportTarget?.summary.totalTargetRevenue)
               )}
@@ -288,27 +274,13 @@ const DashboardReportTarget: React.FC = () => {
         <div className="grid grid-rows-1 gap-2 mt-2">
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report  ">
             <p className="m-0 text-lg">Lượt xe đạt được</p>
-            <p
-              className={`m-0 text-xl font-bold ${
-                Number(dataReportTarget?.summary.totalTargetTrips) >
-                Number(dataReportTarget?.summary.totalActualTrips)
-                  ? "text-red-700"
-                  : "text-green-700"
-              }`}
-            >
+            <p className={`m-0 text-xl font-bold text-green-700`}>
               {dataReportTarget?.summary.totalActualTrips}
             </p>
           </div>
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report">
             <p className="m-0 text-lg">Tiến độ lượt xe</p>
-            <p
-              className={`m-0 text-xl font-bold ${
-                Number(dataReportTarget?.summary.totalTargetTrips) >
-                Number(dataReportTarget?.summary.totalActualTrips)
-                  ? "text-red-700"
-                  : "text-green-700"
-              }`}
-            >
+            <p className={`m-0 text-xl font-bold text-green-700`}>
               {calculatePercentage(
                 Number(dataReportTarget?.summary.totalActualTrips) ?? 0,
                 Number(dataReportTarget?.summary.totalTargetTrips) ?? 0
@@ -317,7 +289,7 @@ const DashboardReportTarget: React.FC = () => {
           </div>
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report">
             <p className="m-0 text-lg">Chỉ tiêu lượt xe tháng</p>
-            <p className="m-0 text-xl font-bold text-green-700">
+            <p className="m-0 text-xl font-bold text-red-700">
               {dataReportTarget?.summary.totalTargetTrips}
             </p>
           </div>

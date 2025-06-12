@@ -11,7 +11,10 @@ import { isUser } from "@/app/lib/auth";
 
 export async function POST(req: NextRequest) {
   if (!isUser(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
 
   try {
@@ -126,7 +129,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ message: "Import DailyKPI thành công" });
+    return NextResponse.json({
+      message: "Import DailyKPI thành công",
+      count: dailyKPIs.length,
+    });
   } catch (error: any) {
     console.error("❌ Lỗi import:", error);
     return NextResponse.json(

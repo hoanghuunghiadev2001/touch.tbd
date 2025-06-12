@@ -6,7 +6,10 @@ const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   if (!isUser(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
   try {
     const body = await req.json();

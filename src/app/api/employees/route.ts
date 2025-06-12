@@ -26,7 +26,10 @@ function getDateRangeArray(from: Date, to: Date) {
 
 export async function GET(req: NextRequest) {
   if (!isUser(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Bạn không có quyền truy cập" },
+      { status: 403 }
+    );
   }
   try {
     const { searchParams } = new URL(req.url);
