@@ -32,12 +32,14 @@ body {
 
 ::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6) !important;
-  background-color: #cccccc !important;
+  background-color: #eeeeee !important;
+  border-radius: 16px !important;
 }
 
 ::-webkit-scrollbar {
   width: 5px !important;
   background-color: #f5f5f5 !important;
+  border-radius: 16px !important;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -55,12 +57,14 @@ body {
 
 div::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6) !important;
-  background-color: #cccccc !important;
+  background-color: #e9e9e9 !important;
+  border-radius: 16px !important;
 }
 
 div::-webkit-scrollbar {
   width: 5px !important;
   background-color: #f5f5f5 !important;
+  border-radius: 16px !important;
 }
 
 div::-webkit-scrollbar-thumb {
