@@ -123,18 +123,8 @@ export default function EmployeeDashboard() {
 
   const month = dateRange[0].month() + 1; // month() trả về 0-11, nên +1
   const year = dateRange[0].year();
-  const [selected, setSelected] = useState(null);
-
-  const handleChange = (e: CheckboxChangeEvent) => {
-    const val = e.target.value;
-
-    // Nếu click vào mục đã chọn -> bỏ chọn (set về null)
-    setSelected((prev) => (prev === val ? null : val));
-
-    setIndustryCode(undefined);
-    setEmployeeId((prev) => (prev === val ? null : val));
-    console.log((prev: any) => (prev === val ? null : val));
-  };
+  const [selectedEmployeeID, setSelectedEmployeeID] = useState(null);
+  const [selectedJobCode, setSelectedJobCode] = useState(null);
 
   // State tìm kiếm theo tên nhân viên
   const [chartType, setChartType] = useState<"bar" | "line">("bar");
@@ -144,64 +134,6 @@ export default function EmployeeDashboard() {
   // Dữ liệu nhân viên từ API
 
   const router = useRouter();
-
-  const [stateChartTrips, setStateChartTrips] = React.useState({
-    series: [76],
-    options: {
-      chart: {
-        type: "radialBar" as const,
-        offsetY: -20,
-        sparkline: {
-          enabled: true,
-        },
-      },
-      plotOptions: {
-        radialBar: {
-          startAngle: -90,
-          endAngle: 90,
-          track: {
-            background: "#e7e7e7",
-            strokeWidth: "97%",
-            margin: 5, // margin is in pixels
-            dropShadow: {
-              enabled: true,
-              top: 2,
-              left: 0,
-              color: "#444",
-              opacity: 1,
-              blur: 2,
-            },
-          },
-          dataLabels: {
-            name: {
-              show: false,
-            },
-            value: {
-              offsetY: -2,
-              fontSize: "22px",
-            },
-          },
-        },
-      },
-      grid: {
-        padding: {
-          top: -10,
-        },
-      },
-      fill: {
-        type: "gradient",
-        gradient: {
-          shade: "light",
-          shadeIntensity: 0.4,
-          inverseColors: false,
-          opacityFrom: 1,
-          opacityTo: 1,
-          stops: [0, 50, 53, 91],
-        },
-      },
-      labels: ["Average Results"],
-    },
-  });
 
   const [employees, setEmployees] = useState<{ id: string; name: string }[]>(
     []
@@ -217,7 +149,34 @@ export default function EmployeeDashboard() {
   const [categories, setCategories] = useState<string[]>([]);
 
   const [totalTargetMonth, setTotalTargetMonth] = useState<Summary>();
+  const handleChangeEmployeeID = (e: CheckboxChangeEvent) => {
+    const val = e.target.value;
 
+    // Nếu click vào mục đã chọn -> bỏ chọn (set về null)
+    setSelectedEmployeeID((prev) => (prev === val ? null : val));
+    setSelectedJobCode(null);
+    setIndustryCode(undefined);
+    setEmployeeId((prev) => (prev === val ? null : val));
+    console.log((prev: any) => (prev === val ? null : val));
+  };
+
+  const handleChangeJobCode = (e: CheckboxChangeEvent) => {
+    const val = e.target.value;
+
+    // Nếu click vào mục đã chọn -> bỏ chọn (set về null)
+    setSelectedJobCode((prev) => (prev === val ? null : val));
+    setEmployeeId(undefined);
+    setSelectedEmployeeID(null);
+    setIndustryCode((prev) => (prev === val ? null : val));
+    console.log((prev: any) => (prev === val ? null : val));
+  };
+
+  useEffect(() => {
+    console.log("Selected Employee ID:", selectedEmployeeID);
+    console.log("Selected Job Code:", selectedJobCode);
+    console.log(employeeId);
+    console.log(industryCode);
+  }, [employeeId]);
   // Hàm format tiền tệ rút gọn (vd: 2.5M, 1.2k,...)
   function formatCurrencyShort(value: number): string {
     if (value >= 1_000_000_000)
@@ -487,9 +446,9 @@ export default function EmployeeDashboard() {
   }, [dateRange, employeeId, industryCode]);
 
   return (
-    <div className="flex w-full gap-4 p-4 h-[calc(100vh)]">
+    <div className="flex w-full h-[calc(100vh)]">
       <ModalLoading isOpen={loading} />
-      <div className="w-[250px] h-full shrink-0">
+      <div className="w-[350px] h-full shrink-0 shadow-2xl p-4">
         <h2 className="text-2xl font-semibold text-center mb-2">
           Báo cáo tổng hợp
         </h2>
@@ -538,8 +497,8 @@ export default function EmployeeDashboard() {
                   <Checkbox
                     key={item.id}
                     value={item.id}
-                    checked={selected === item.id}
-                    onChange={handleChange}
+                    checked={selectedEmployeeID === item.id}
+                    onChange={handleChangeEmployeeID}
                   >
                     {item.name}
                   </Checkbox>
@@ -547,26 +506,18 @@ export default function EmployeeDashboard() {
               </div>
             </Form.Item>
             <Form.Item label="Ngành:" layout="vertical">
-              <Select
-                className="w-full"
-                showSearch
-                placeholder="Mã gành"
-                value={industryCode}
-                onChange={(e) => {
-                  setEmployeeId(undefined);
-                  setIndustryCode(e);
-                }}
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
-                allowClear
-                options={jobCodes.map((code) => ({
-                  value: code,
-                  label: code,
-                }))}
-              />
+              <div className="p-2 h-52 overflow-y-auto shrink-0 w-fit">
+                {jobCodes.map((item) => (
+                  <Checkbox
+                    key={item}
+                    value={item}
+                    checked={selectedJobCode === item}
+                    onChange={handleChangeJobCode}
+                  >
+                    {item}
+                  </Checkbox>
+                ))}
+              </div>
             </Form.Item>
           </div>
         </div>
@@ -652,11 +603,11 @@ export default function EmployeeDashboard() {
           </>
         )}
       </div>
-      <div className="w-full h-full">
+      <div className="w-[calc(100vw-300px)]">
         {loading && <Text>Đang tải dữ liệu...</Text>}
 
         {!loading && (
-          <div className="h-full grid grid-ro">
+          <div className=" w-[calc(100vw-355px)]  h-[calc(100vh)]  py-4 ">
             <ClientChart
               options={chartDoanhThuOptions}
               series={chartDoanhThuSeries}

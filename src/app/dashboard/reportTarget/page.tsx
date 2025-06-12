@@ -208,7 +208,7 @@ const DashboardReportTarget: React.FC = () => {
   return (
     <div className="h-[calc(100vh)] flex py-4 pr-4">
       <ModalLoading isOpen={loading} />
-      <div className="w-[250px] h-full overflow-y-auto shrink-0 px-4 pb-4">
+      <div className="w-[300px] h-full overflow-y-auto shrink-0 px-4 pb-4">
         <h2 className="text-2xl font-semibold text-center mb-2">
           Báo cáo chỉ tiêu
         </h2>
@@ -244,7 +244,7 @@ const DashboardReportTarget: React.FC = () => {
           format="MM/YYYY"
           placeholder="Chọn tháng"
         />
-        <div className="grid grid-rows-1 gap-2 mt-2">
+        <div className="grid grid-rows-1 gap-3 mt-4">
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report">
             <p className="m-0 text-lg">Doanh thu đã đạt</p>
             <p className={`m-0 text-xl font-bold text-green-700 `}>
@@ -295,7 +295,7 @@ const DashboardReportTarget: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="w-[calc(100vw-280px)] h-full">
+      <div className="w-[calc(100vw-320px)] h-full">
         {dataReportTarget?.data?.length ? (
           <>
             <div className="h-[50%]">
