@@ -7,10 +7,7 @@ import { isUser } from "@/app/lib/auth";
 
 export async function POST(req: NextRequest) {
   if (!isUser(req)) {
-    return NextResponse.json(
-      { error: "Bạn không có quyền truy cập" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   try {
@@ -68,14 +65,9 @@ export async function POST(req: NextRequest) {
       if (!nameCell || !nameCell.v) break; // Không có tên → dừng
 
       const name = nameCell.v.toString().trim();
-      const rawTrip = tripCell?.v;
-      const tripTarget =
-        tripCell?.t === "n"
-          ? Number(rawTrip)
-          : Number(rawTrip?.toString().replace(/,/g, "."));
-
-      console.log(tripTarget, revenueCell);
-
+      const tripTarget = Math.round(
+        parseFloat(tripCell?.v?.toString().replace(/,/g, "") || "0")
+      );
       const revenueTarget = parseFloat(
         revenueCell?.v?.toString().replace(/,/g, "") || "0"
       );
