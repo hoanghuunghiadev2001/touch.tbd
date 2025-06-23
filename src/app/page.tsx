@@ -751,14 +751,13 @@ export default function UploadTargetForm() {
             style={{ width: 150 }}
           />
 
-          <Button type="primary" onClick={fetchData} loading={loading}>
+          <Button type="primary" onClick={fetchData}>
             Tìm kiếm
           </Button>
           {dataUser?.role && dataUser?.role !== "USER" && (
             <Button
               className="!bg-amber-600"
               type="primary"
-              loading={loading}
               onClick={() => setModalManagerEmployees(true)}
             >
               Quản lý CVDV
@@ -770,7 +769,6 @@ export default function UploadTargetForm() {
             <Button
               className="!bg-purple-800"
               type="primary"
-              loading={loading}
               onClick={() => setModalAddKPIMonth(true)}
             >
               Thêm chỉ tiêu
@@ -778,7 +776,6 @@ export default function UploadTargetForm() {
             <Button
               className="!bg-yellow-800"
               type="primary"
-              loading={loading}
               onClick={() => setOpenModalValue(true)}
             >
               Cập nhật dữ liệu
@@ -786,14 +783,12 @@ export default function UploadTargetForm() {
             <Button
               className="!bg-cyan-800"
               type="primary"
-              loading={loading}
               onClick={() => setModalDeleteKPIDay(true)}
             >
               Quản lý Dữ liệu
             </Button>
             <Button
               className="!bg-[#104b22] !text-white"
-              loading={loading}
               onClick={() => {
                 setLoading(true);
                 router.push(`/dashboard/reportTarget`);
@@ -803,7 +798,6 @@ export default function UploadTargetForm() {
             </Button>
             <Button
               className="!bg-[#f54e4e] !text-white"
-              loading={loading}
               onClick={() => {
                 setLoading(true);
                 router.push(`/dashboard/report`);
