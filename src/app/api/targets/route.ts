@@ -43,9 +43,6 @@ export async function GET(request: NextRequest) {
       const employeeIdParam = searchParams.get("employeeId");
       employeeIdFilter = employeeIdParam ?? "";
     }
-    console.log("name:" + getEmployeeUser(request).name);
-    console.log("role:" + getEmployeeUser(request).role);
-    console.log("id:" + employeeIdFilter);
 
     const employeeIdParam =
       getEmployeeUser(request).role === "USER"

@@ -154,11 +154,6 @@ export default function UploadTargetForm() {
 
   const year = monthYearFilter?.year();
   const month = (monthYearFilter?.month() ?? 0) + 1;
-  useEffect(() => {
-    console.log(monthYearFilter);
-
-    console.log((monthYearFilter?.month() ?? 0) + 2);
-  }, [monthYearFilter]);
 
   const handleUpload: UploadProps["beforeUpload"] = (file) => {
     setFile(file);

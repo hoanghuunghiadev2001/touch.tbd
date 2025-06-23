@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
       const nameCell = sheet[`${col}4`];
       const tripCell = sheet[`${col}9`];
       const revenueCell = sheet[`${col}17`];
-      console.log(nameCell);
 
       if (!nameCell || !nameCell.v) break; // Không có tên → dừng
 

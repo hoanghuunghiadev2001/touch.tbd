@@ -157,7 +157,6 @@ export default function EmployeeDashboard() {
     setSelectedJobCode(null);
     setIndustryCode(undefined);
     setEmployeeId((prev) => (prev === val ? null : val));
-    console.log((prev: any) => (prev === val ? null : val));
   };
 
   const handleChangeJobCode = (e: CheckboxChangeEvent) => {
@@ -168,15 +167,8 @@ export default function EmployeeDashboard() {
     setEmployeeId(undefined);
     setSelectedEmployeeID(null);
     setIndustryCode((prev) => (prev === val ? null : val));
-    console.log((prev: any) => (prev === val ? null : val));
   };
 
-  useEffect(() => {
-    console.log("Selected Employee ID:", selectedEmployeeID);
-    console.log("Selected Job Code:", selectedJobCode);
-    console.log(employeeId);
-    console.log(industryCode);
-  }, [employeeId]);
   // Hàm format tiền tệ rút gọn (vd: 2.5M, 1.2k,...)
   function formatCurrencyShort(value: number): string {
     if (value >= 1_000_000_000)
