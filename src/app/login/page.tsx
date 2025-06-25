@@ -120,6 +120,7 @@ export default function LoginPage() {
           onFinish={onFinish}
           layout="vertical"
           requiredMark={false}
+          
         >
           <Form.Item
             label="Email"
@@ -134,6 +135,7 @@ export default function LoginPage() {
               placeholder="Email của bạn"
               size="large"
               className="rounded-xl"
+              onChange={() => setLoginError(null)}
             />
           </Form.Item>
 
@@ -146,6 +148,8 @@ export default function LoginPage() {
             ]}
           >
             <Input.Password
+              onChange={() => setLoginError(null)}
+              
               prefix={<LockOutlined />}
               placeholder="Mật khẩu"
               size="large"
