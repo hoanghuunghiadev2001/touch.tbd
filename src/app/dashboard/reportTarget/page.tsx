@@ -244,7 +244,7 @@ const DashboardReportTarget: React.FC = () => {
           format="MM/YYYY"
           placeholder="Chọn tháng"
         />
-        <div className="grid grid-rows-1 gap-3 mt-4">
+        <div className="grid grid-rows-1 gap-4 mt-4">
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report">
             <p className="m-0 text-lg">Doanh thu đã đạt</p>
             <p className={`m-0 text-xl font-bold text-green-700 `}>
@@ -271,7 +271,7 @@ const DashboardReportTarget: React.FC = () => {
             </p>
           </div>
         </div>
-        <div className="grid grid-rows-1 gap-2 mt-2">
+        <div className="grid grid-rows-1 gap-4 mt-2">
           <div className="flex flex-col items-center gap-1 p-2 rounded-2xl  shadow-card-report  ">
             <p className="m-0 text-lg">Lượt xe đạt được</p>
             <p className={`m-0 text-xl font-bold text-green-700`}>

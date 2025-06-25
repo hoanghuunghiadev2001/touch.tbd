@@ -484,7 +484,7 @@ export default function EmployeeDashboard() {
               className="col-span-2"
               layout="vertical"
             >
-              <div className="p-2 h-52 overflow-y-auto">
+              <div className="p-2 max-h-[calc(100vh-470)] overflow-y-auto">
                 {employees.map((item) => (
                   <Checkbox
                     key={item.id}
@@ -498,7 +498,7 @@ export default function EmployeeDashboard() {
               </div>
             </Form.Item>
             <Form.Item label="Ngành:" layout="vertical">
-              <div className="p-2 h-52 overflow-y-auto shrink-0 w-fit">
+              <div className="p-2 max-h-[calc(100vh-470)] overflow-y-auto shrink-0 w-fit">
                 {jobCodes.map((item) => (
                   <Checkbox
                     key={item}
