@@ -60,6 +60,7 @@ const Logout = () => {
     }
   }
   async function changePassword(change: interfaceChangePassword) {
+    setLoading(true);
     try {
       const res = await fetch("/api/users/change-password", {
         method: "PUT",
@@ -75,12 +76,14 @@ const Logout = () => {
       const data = await res.json();
 
       if (!res.ok) {
+        setLoading(false);
         messageApi.open({
           type: "error",
           content: data.error || "Đổi mật khẩu thất bại",
         });
         return;
       }
+            setLoading(false);
       setModalchangePass(false);
       messageApi.open({
         type: "success",
@@ -88,6 +91,7 @@ const Logout = () => {
       });
       return data;
     } catch (error) {
+            setLoading(false);
       messageApi.open({
         type: "error",
         content: "Đổi mật khẩu thất bại",
@@ -97,7 +101,7 @@ const Logout = () => {
 
   async function getUser() {
     if (pathname === "/login") return;
-
+    
     try {
       const req = await fetch("/api/users/", {
         method: "GET",

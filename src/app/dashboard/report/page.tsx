@@ -492,7 +492,7 @@ export default function EmployeeDashboard() {
                     checked={selectedEmployeeID === item.id}
                     onChange={handleChangeEmployeeID}
                   >
-                    {item.name}
+                    {item.name} 
                   </Checkbox>
                 ))}
               </div>
