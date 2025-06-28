@@ -281,6 +281,7 @@ export default function UploadTargetForm() {
       setFile(null); // reset file sau khi import thành công
       fetchData(); // load lại dữ liệu sau import
       setLoading(false);
+      setOpenModalTarget(false);
     } catch (err: any) {
       setLoading(false);
       messageApi.open({

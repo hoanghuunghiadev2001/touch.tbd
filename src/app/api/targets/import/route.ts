@@ -57,9 +57,9 @@ export async function POST(req: NextRequest) {
     // Duyệt từ cột J đến khi nào hết tên ở hàng 4
     const columnLetters = getColumnsFrom("J");
     for (const col of columnLetters) {
-      const nameCell = sheet[`${col}4`];
-      const tripCell = sheet[`${col}9`];
-      const revenueCell = sheet[`${col}17`];
+      const nameCell = sheet[`${col}6`];
+      const tripCell = sheet[`${col}11`];
+      const revenueCell = sheet[`${col}19`];
 
       if (!nameCell || !nameCell.v) break; // Không có tên → dừng
 
