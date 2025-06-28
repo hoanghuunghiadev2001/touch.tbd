@@ -2,7 +2,6 @@
 
 import { Button, Form, Input, message, Modal } from "antd";
 import { useEffect, useState } from "react";
-import ModalLoading from "./modalLoading";
 
 export interface interfaceChangePassword {
   currentPassword: string;

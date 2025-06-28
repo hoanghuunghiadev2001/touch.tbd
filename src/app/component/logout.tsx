@@ -9,7 +9,6 @@ import { usePathname } from "next/navigation";
 import ModalChangePass, {
   interfaceChangePassword,
 } from "./modalChangePassEmployee";
-import Clock from "./timeNow";
 import { MenuProps } from "antd/lib";
 import Draggable from "react-draggable";
 
@@ -101,7 +100,7 @@ const Logout = () => {
 
   async function getUser() {
     if (pathname === "/login") return;
-    
+
     try {
       const req = await fetch("/api/users/", {
         method: "GET",
